@@ -8,6 +8,8 @@ RUN pip install \
     -r requirements.txt
 
 COPY ./src/rss_reader ./rss_reader
+COPY ./migrations ./migrations
+COPY ./alembic.ini .
 
 EXPOSE 8080
 
