@@ -1,13 +1,13 @@
 FROM python:3.6
 
-WORKDIR /usr/src/rss-reader
+WORKDIR /rss-reader
 
 COPY requirements.txt .
 RUN pip install \
     --no-cache-dir \
     -r requirements.txt
 
-COPY ./src/rss_reader ./rss_reader
+COPY ./rss_reader ./rss_reader
 COPY ./migrations ./migrations
 COPY ./alembic.ini .
 

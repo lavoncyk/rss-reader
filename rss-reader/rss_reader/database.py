@@ -2,7 +2,7 @@
 Module with the DB configuration.
 """
 
-import motor.motor_asyncio as motor_async
+import sqlalchemy as sa
 
 from rss_reader.config import settings
 
