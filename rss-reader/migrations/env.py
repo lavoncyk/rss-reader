@@ -26,14 +26,15 @@ target_metadata = None
 # ... etc.
 
 
-def get_url():
+def get_db_url():
     """Get DB connection URI."""
-    return os.getenv("RSS_DB_URI")
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "")
-    server = os.getenv("POSTGRES_SERVER", "db")
-    db = os.getenv("POSTGRES_DB", "app")
-    return f"postgresql://{user}:{password}@{server}/{db}"
+    url = os.getenv("RSS_DB_URI")
+    if url is None:
+        raise ValueError(
+            "The `RSS_DB_URI` environment variable is required to run "
+            "migrations. Please set one with DB URI."
+        )
+    return url
 
 
 def run_migrations_offline():
@@ -48,7 +49,7 @@ def run_migrations_offline():
     script output.
 
     """
-    url = get_url()
+    url = get_db_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -68,7 +69,7 @@ def run_migrations_online():
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
+    configuration["sqlalchemy.url"] = get_db_url()
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
