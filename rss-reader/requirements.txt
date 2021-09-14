@@ -1,7 +1,6 @@
 alembic==1.7.1
 asgiref==3.4.1
 click==8.0.1
-dataclasses==0.8
 fastapi==0.68.1
 greenlet==1.1.1
 h11==0.12.0
