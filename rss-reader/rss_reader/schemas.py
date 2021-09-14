@@ -12,7 +12,7 @@ class RssFeedBase(pydantic.BaseModel):
     """
     Base RSS Feed model.
     """
-    title: Optional[str] = None
+    name: Optional[str] = None
     url: Optional[HttpUrl] = None
 
 
@@ -20,7 +20,7 @@ class RssFeedCreate(RssFeedBase):
     """
     Model used for RSS feed creation.
     """
-    title: str
+    name: str
     url: HttpUrl
 
 
@@ -35,5 +35,8 @@ class RssFeed(RssFeedBase):
     Model used for RSS feed representation.
     """
     id: int
-    title: str
+    name: str
     url: HttpUrl
+
+    class Config:
+        orm_mode = True
