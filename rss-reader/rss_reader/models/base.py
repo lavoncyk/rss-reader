@@ -3,11 +3,18 @@ Module with the Base model.
 """
 
 import sqlalchemy as sa
+from sqlalchemy.ext import declarative
+
+from rss_reader import utils
 
 
-@sa.ext.declarative.as_declarative()
+@declarative.as_declarative()
 class Base:
     """
     Base model.
     """
     id = sa.Column(sa.Integer, primary_key=True)
+
+    @declarative.declared_attr
+    def __tablename__(cls) -> str:
+        return f"{utils.underscore_from_camelcase(cls.__name__)}s"
