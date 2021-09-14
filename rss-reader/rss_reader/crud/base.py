@@ -98,7 +98,7 @@ class CrudBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.refresh(obj)
         return obj
 
-    def remove(self, db: sa.orm.Session, *, id: int) -> Optional[ModelType]:
+    def remove(self, db: sa.orm.Session, *, id: Any) -> Optional[ModelType]:
         """Delete an object by ID.
 
         Args:
