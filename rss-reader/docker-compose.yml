@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  rss:
+  rss_api:
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,12 +14,29 @@ services:
     networks:
       - rss_network
 
+  rss_parser:
+    build:
+      context: .
+      dockerfile: rss_parser.dockerfile
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - queue
+    networks:
+      - rss_network
+
   db:
     image: postgres:13
     volumes:
       - rss_postgres_data:/var/lib/postgresql/data/
     ports:
       - 5432:5432
+    networks:
+      - rss_network
+
+  queue:
+    image: rabbitmq:3
     networks:
       - rss_network
 
