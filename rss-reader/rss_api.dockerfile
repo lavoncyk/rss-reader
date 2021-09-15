@@ -1,6 +1,6 @@
 FROM python:3.9
 
-WORKDIR /rss-reader
+WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install \
@@ -13,4 +13,7 @@ COPY ./alembic.ini .
 
 EXPOSE 8080
 
-CMD [ "uvicorn", "rss_reader.main:app", "--host", "0.0.0.0", "--port", "8080"]
+COPY ./bin/rss-api-start.sh /rss-api-start.sh
+RUN chmod +x /rss-api-start.sh
+
+CMD ["bash", "/rss-api-start.sh"]

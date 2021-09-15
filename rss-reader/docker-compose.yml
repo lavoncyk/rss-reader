@@ -4,9 +4,9 @@ services:
   rss_api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: rss_api.dockerfile
     volumes:
-      - .:/rss-reader
+      - .:/app
     ports:
       - 8080:8080
     depends_on:
