@@ -1,10 +1,13 @@
 version: "3"
 
 services:
+
   rss_api:
     build:
       context: .
       dockerfile: rss_api.dockerfile
+    env_file:
+      - .env
     volumes:
       - .:/app
     ports:
@@ -18,6 +21,8 @@ services:
     build:
       context: .
       dockerfile: rss_parser.dockerfile
+    env_file:
+      - .env
     volumes:
       - .:/app
     depends_on:
@@ -28,6 +33,8 @@ services:
 
   db:
     image: postgres:13
+    env_file:
+      - .env
     volumes:
       - rss_postgres_data:/var/lib/postgresql/data/
     ports:
