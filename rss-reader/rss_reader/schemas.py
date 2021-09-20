@@ -2,6 +2,7 @@
 Module which contains API schema definition.
 """
 
+from datetime import datetime
 from typing import Optional
 
 import pydantic
@@ -37,6 +38,8 @@ class RssFeed(RssFeedBase):
     id: int
     name: str
     url: HttpUrl
+    last_read_at: Optional[datetime]
+    created_at: datetime
 
     class Config:
         orm_mode = True
