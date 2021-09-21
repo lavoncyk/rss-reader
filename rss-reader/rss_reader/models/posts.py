@@ -1,0 +1,22 @@
+"""
+Module with the Post model.
+"""
+import sqlalchemy as sa
+
+from rss_reader.models import base
+
+
+class Post(base.Base):
+    """
+    Post model.
+    """
+    title = sa.Column(sa.String(255), nullable=False)
+    url = sa.Column(sa.Text, nullable=False)
+    published_at = sa.Column(sa.DateTime, nullable=False)
+    rss_feed_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("rss_feeds.id"),
+        nullable=False,
+    )
+
+    rss_feed = sa.orm.relationship("RssFeed", backref="posts")
