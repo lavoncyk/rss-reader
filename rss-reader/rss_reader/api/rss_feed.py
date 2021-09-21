@@ -1,5 +1,5 @@
 """
-Module which contains API endpoints.
+Module which contains API endpoints for RSS Feeds.
 """
 
 from typing import List

@@ -11,7 +11,7 @@ from pydantic.networks import HttpUrl
 
 class RssFeedBase(pydantic.BaseModel):
     """
-    Base RSS Feed model.
+    Base RSS feed model.
     """
     name: Optional[str] = None
     url: Optional[HttpUrl] = None
@@ -40,6 +40,36 @@ class RssFeed(RssFeedBase):
     url: HttpUrl
     last_read_at: Optional[datetime]
     created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class PostCreate(pydantic.BaseModel):
+    """
+    Model used for post creation.
+    """
+    rss_feed_id: int
+    title: str
+    url: HttpUrl
+    published_at: datetime
+
+
+class PostUpdate(pydantic.BaseModel):
+    """
+    Model used for post update.
+    """
+
+
+class Post(pydantic.BaseModel):
+    """
+    Model used for post representation.
+    """
+    id: int
+    rss_feed_id: int
+    title: str
+    url: HttpUrl
+    published_at: datetime
 
     class Config:
         orm_mode = True
