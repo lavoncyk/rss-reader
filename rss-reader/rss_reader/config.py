@@ -11,6 +11,8 @@ class Settings(pydantic.BaseSettings):
     Class which contains app settings.
     """
     RSS_DB_URI: AnyUrl
+    RSS_TASKS_QUEUE_URI: AnyUrl
+    RSS_TASKS_RES_BACKEND_URI: AnyUrl
 
 
 settings = Settings()

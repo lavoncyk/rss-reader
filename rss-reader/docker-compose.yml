@@ -27,7 +27,8 @@ services:
       - .:/app
     depends_on:
       - db
-      - queue
+      - task_queue
+      - task_results_backend
     networks:
       - rss_network
 
@@ -42,8 +43,13 @@ services:
     networks:
       - rss_network
 
-  queue:
+  task_queue:
     image: rabbitmq:3
+    networks:
+      - rss_network
+
+  task_results_backend:
+    image: redis:6
     networks:
       - rss_network
 
