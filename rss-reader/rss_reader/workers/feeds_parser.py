@@ -22,7 +22,7 @@ def load_new_posts_from_feeds() -> None:
     db = db_session.SessionLocal()
 
     parse_feed_jobs = [
-        parse_feed.signature((f.id, f.url, f.last_read_at))
+        parse_feed.signature((f.id, f.url, f.last_new_posts_at))
         for f in db.query(models.RssFeed).all()
     ]
 
@@ -36,30 +36,30 @@ def load_new_posts_from_feeds() -> None:
 def parse_feed(
     feed_id: int,
     url: str,
-    last_read_at: Optional[datetime],
+    last_new_posts_at: Optional[datetime],
 ) -> dict:
     """Parse RSS feed.
 
     Args:
         feed_id (int): A feed ID in DB.
         url (str): A feed URL.
-        last_read_at (Optional[datetime]): A time of last read of the feed.
+        last_new_posts_at (Optional[datetime]): A time of last new post in feed.
 
     Returns:
         dict: A dict representing parsed RSS feed and its posts.
     """
-    parsed_feed = feedparser.parse(url, modified=last_read_at)
+    parsed_feed = feedparser.parse(url, modified=last_new_posts_at)
     logger.info("Parsed %d entries from '%s' feed.",
                 len(parsed_feed.entries), url)
 
-    def str_read_at_2_datetime(read_at_str: str) -> datetime:
+    def str_modified_2_datetime(read_at_str: str) -> datetime:
         """Convert feed's modified date from str to datetime."""
         return datetime.strptime(read_at_str, "%a, %d %b %Y %H:%M:%S %Z") \
                        .isoformat()
 
     return {
         "rss_feed_id": feed_id,
-        "read_at": str_read_at_2_datetime(parsed_feed.modified),
+        "read_at": str_modified_2_datetime(parsed_feed.modified),
         "posts": [
             {
                 "title": entry.title,
@@ -85,7 +85,7 @@ def save_posts_from_feeds(feeds: List[dict]) -> int:
     saved_posts = 0
     for feed in feeds:
         feed_obj = db.query(models.RssFeed).get(feed["rss_feed_id"])
-        feed_obj.last_read_at = feed["read_at"]
+        feed_obj.last_new_posts_at = feed["read_at"]
         db.add(feed_obj)
         for post in feed["posts"]:
             post_obj = models.Post(**post)
