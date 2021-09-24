@@ -13,7 +13,7 @@ COPY ./alembic.ini .
 
 EXPOSE 8080
 
-COPY ./bin/rss-api-start.sh /rss-api-start.sh
+COPY ./scripts/rss-api-start.sh /rss-api-start.sh
 RUN chmod +x /rss-api-start.sh
 
 CMD ["bash", "/rss-api-start.sh"]
