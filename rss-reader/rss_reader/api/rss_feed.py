@@ -9,8 +9,8 @@ import sqlalchemy as sa
 from fastapi import params
 
 from rss_reader import crud
-from rss_reader import database
 from rss_reader import schemas
+from rss_reader.api import deps
 
 
 router = fastapi.APIRouter(
@@ -21,7 +21,7 @@ router = fastapi.APIRouter(
 
 @router.get("/", response_model=List[schemas.RssFeed])
 async def read_feeds(
-    db: sa.orm.Session = params.Depends(database.get_db),
+    db: sa.orm.Session = params.Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
 ):
@@ -34,7 +34,7 @@ async def read_feeds(
 @router.post("/", response_model=schemas.RssFeed)
 async def create_feed(
     *,
-    db: sa.orm.Session = params.Depends(database.get_db),
+    db: sa.orm.Session = params.Depends(deps.get_db),
     src: schemas.RssFeedCreate,
 ):
     """
@@ -46,7 +46,7 @@ async def create_feed(
 @router.put("/{id}", response_model=schemas.RssFeed)
 async def update_feed(
     *,
-    db: sa.orm.Session = params.Depends(database.get_db),
+    db: sa.orm.Session = params.Depends(deps.get_db),
     id: int,
     src: schemas.RssFeedUpdate,
 ):
@@ -62,7 +62,7 @@ async def update_feed(
 @router.get("/{id}", response_model=schemas.RssFeed)
 async def read_feed(
     *,
-    db: sa.orm.Session = params.Depends(database.get_db),
+    db: sa.orm.Session = params.Depends(deps.get_db),
     id: int,
 ):
     """
@@ -77,7 +77,7 @@ async def read_feed(
 @router.delete("/{id}", response_model=schemas.RssFeed)
 async def delete_feed(
     *,
-    db: sa.orm.Session = params.Depends(database.get_db),
+    db: sa.orm.Session = params.Depends(deps.get_db),
     id: int,
 ):
     """
