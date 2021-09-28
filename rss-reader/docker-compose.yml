@@ -20,7 +20,7 @@ services:
   rss_parser:
     build:
       context: .
-      dockerfile: rss_parser.dockerfile
+      dockerfile: worker.dockerfile
     env_file:
       - .env
     volumes:
