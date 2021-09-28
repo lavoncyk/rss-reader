@@ -5,7 +5,7 @@ services:
   rss_api:
     build:
       context: .
-      dockerfile: rss_api.dockerfile
+      dockerfile: server.dockerfile
     env_file:
       - .env
     volumes:
