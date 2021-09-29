@@ -2,7 +2,9 @@
 Module with RSS Reader utils.
 """
 
+import functools
 import re
+from typing import Any, Callable, Iterable
 
 
 def underscore_from_camelcase(string: str) -> str:
@@ -22,4 +24,13 @@ def camelcase_from_underscore(string: str) -> str:
         r"[_][A-Za-z]",
         lambda pat: "" + pat.group(0)[1].upper(),
         string,
+    )
+
+
+def pipeline_each(data: Iterable[Any], fns: Callable[[Any], Any]):
+    """Pipeline each item from `data` through `fns` functions."""
+    return functools.reduce(
+        lambda a, x: list(map(x, a)),
+        fns,
+        data,
     )

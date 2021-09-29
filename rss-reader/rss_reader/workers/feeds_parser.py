@@ -8,8 +8,10 @@ from typing import List, Optional
 import celery
 import celery.utils
 import feedparser
+from feedparser import util
 
 from rss_reader import models
+from rss_reader import utils
 from rss_reader.db import session as db_session
 
 
@@ -82,16 +84,33 @@ def save_posts_from_feeds(feeds: List[dict]) -> int:
         int: A total number of saved posts.
     """
     db = db_session.SessionLocal()
-    saved_posts = 0
-    for feed in feeds:
+
+    def save_posts(feed: dict) -> dict:
+        """Save posts from RSS feed."""
+        db.bulk_save_objects([models.Post(**post) for post in feed["posts"]])
+        return feed
+
+    def update_read_timestamp(feed: dict) -> dict:
+        """Update read timestamp of RSS feed."""
         feed_obj = db.query(models.RssFeed).get(feed["rss_feed_id"])
         feed_obj.last_new_posts_at = feed["read_at"]
         db.add(feed_obj)
-        for post in feed["posts"]:
-            post_obj = models.Post(**post)
-            db.add(post_obj)
-        saved_posts += len(feed["posts"])
+        return feed
+
+    def count_saved_posts(feed: dict) -> int:
+        """Get number of saved posts for RSS feed."""
+        return len(feed["posts"])
+
+    pipeline_res = utils.pipeline_each(
+        feeds,
+        [
+            save_posts,
+            update_read_timestamp,
+            count_saved_posts,
+        ])
+
     db.commit()
 
-    logger.info("Saved %d entries from all feeds.", saved_posts)
-    return saved_posts
+    num_saved_posts = sum(pipeline_res)
+    logger.info("Saved %d entries from all feeds.", num_saved_posts)
+    return num_saved_posts
