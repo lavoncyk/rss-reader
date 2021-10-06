@@ -18,5 +18,5 @@ class RssFeed(base.Base):
     created_at = sa.Column(
         sa.DateTime,
         nullable=False,
-        default=lambda: datetime.utcnow().replace(microsecond=0).isoformat(),
+        default=lambda: datetime.utcnow().replace(microsecond=0),
     )

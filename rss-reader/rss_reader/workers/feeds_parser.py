@@ -55,8 +55,7 @@ def parse_feed(
 
     def str_modified_2_datetime(read_at_str: str) -> datetime:
         """Convert feed's modified date from str to datetime."""
-        return datetime.strptime(read_at_str, "%a, %d %b %Y %H:%M:%S %Z") \
-                       .isoformat()
+        return datetime.strptime(read_at_str, "%a, %d %b %Y %H:%M:%S %Z")
 
     return {
         "rss_feed_id": feed_id,
