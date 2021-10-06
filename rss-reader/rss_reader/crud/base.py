@@ -103,7 +103,7 @@ class CrudBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         Args:
             db (sa.orm.Session): A DB instance.
-            id (int): Oject ID.
+            id (int): Object ID.
 
         Returns:
             Optional[ModelType]: Deleted object or None.
