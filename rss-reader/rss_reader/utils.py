@@ -4,7 +4,7 @@ Module with RSS Reader utils.
 
 import functools
 import re
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, List, Iterable
 
 
 def underscore_from_camelcase(string: str) -> str:
@@ -27,7 +27,7 @@ def camelcase_from_underscore(string: str) -> str:
     )
 
 
-def pipeline_each(data: Iterable[Any], fns: Callable[[Any], Any]):
+def pipeline_each(data: List[Any], fns: List[Callable[[Any], Any]]):
     """Pipeline each item from `data` through `fns` functions."""
     return functools.reduce(
         lambda a, x: list(map(x, a)),
