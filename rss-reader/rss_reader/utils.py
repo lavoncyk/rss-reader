@@ -4,7 +4,7 @@ Module with RSS Reader utils.
 
 import functools
 import re
-from typing import Any, Callable, List, Iterable
+from typing import Any, Callable, List
 
 
 def underscore_from_camelcase(string: str) -> str:
