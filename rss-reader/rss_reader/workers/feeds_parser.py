@@ -23,7 +23,7 @@ def load_new_posts_from_feeds() -> None:
     db = db_session.SessionLocal()
 
     parse_feed_jobs = [
-        parse_feed.signature((f.id, f.url, f.last_new_posts_at))
+        parse_feed.signature((f.id, f.url, f.last_new_posts_at, f.etag))
         for f in db.query(models.RssFeed).all()
     ]
 
@@ -38,6 +38,7 @@ def parse_feed(
     feed_id: int,
     url: str,
     last_new_posts_at: Optional[datetime],
+    etag: Optional[str],
 ) -> dict:
     """Parse RSS feed.
 
@@ -45,11 +46,17 @@ def parse_feed(
         feed_id (int): A feed ID in DB.
         url (str): A feed URL.
         last_new_posts_at (Optional[datetime]): A time of last new post in feed.
+        etag (Optional[str]): An ETag published by feed.
 
     Returns:
         dict: A dict representing parsed RSS feed and its posts.
     """
-    parsed_feed = feedparser.parse(url, modified=last_new_posts_at)
+
+    # Clients should support both ETag and Last-Modified headers, as some
+    # servers support one but not the other. These are needed to avoid
+    # download feeds that have not changed, save bandwidth, and prevent
+    # possible bans from feed publishers.
+    parsed_feed = feedparser.parse(url, modified=last_new_posts_at, etag=etag)
     logger.info("Parsed %d entries from '%s' feed.",
                 len(parsed_feed.entries), url)
 
@@ -60,6 +67,7 @@ def parse_feed(
     return {
         "rss_feed_id": feed_id,
         "read_at": str_modified_2_datetime(parsed_feed.modified),
+        "etag": getattr(parsed_feed, "etag", None),
         "posts": [
             {
                 "title": entry.title,
@@ -94,11 +102,18 @@ def save_posts_from_feeds(feeds: List[dict]) -> None:
         db.add(feed_obj)
         return feed
 
+    def update_etag(feed: dict) -> dict:
+        feed_obj = db.query(models.RssFeed).get(feed["rss_feed_id"])
+        feed_obj.etag = feed["etag"]
+        db.add(feed_obj)
+        return feed
+
     utils.pipeline_each(
         feeds,
         [
             save_posts,
             update_read_timestamp,
+            update_etag,
         ])
 
     db.commit()
