@@ -15,10 +15,17 @@ app = celery.Celery(
         "rss_reader.workers.feeds_parser",
     ],
 )
-app.conf.timezone = "UTC"
-app.conf.beat_schedule = {
-    "parse-rss-feeds": {
-        "task": "rss_reader.workers.feeds_parser.load_new_posts_from_feeds",
-        "schedule": settings.RSS_PARSE_FEEDS_INTERVAL,
+
+app.conf.update(
+    timezone="UTC",
+    accept_content=["application/x-python-serialize"],
+    task_serializer="pickle",
+    result_accept_content=["application/x-python-serialize"],
+    result_serializer="pickle",
+    beat_schedule={
+        "parse-rss-feeds": {
+            "task": "rss_reader.workers.feeds_parser.load_new_posts_from_feeds",
+            "schedule": settings.RSS_PARSE_FEEDS_INTERVAL,
+        }
     }
-}
+)
