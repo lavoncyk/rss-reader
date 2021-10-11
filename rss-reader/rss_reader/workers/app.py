@@ -1,7 +1,8 @@
+"""
+Module with Celery app.
+"""
 
 import celery
-import celery.schedules
-import celery.utils
 
 from rss_reader.config import settings
 
@@ -18,6 +19,6 @@ app.conf.timezone = "UTC"
 app.conf.beat_schedule = {
     "parse-rss-feeds": {
         "task": "rss_reader.workers.feeds_parser.load_new_posts_from_feeds",
-        "schedule": 5.0,
+        "schedule": settings.RSS_PARSE_FEEDS_INTERVAL,
     }
 }
