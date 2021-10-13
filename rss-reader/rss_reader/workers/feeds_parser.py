@@ -143,9 +143,17 @@ def parse_feed(
     logger.info("> Found %d new posts among fetched entries for '%s' RSS feed",
                 len(posts), url)
 
+    # Some feeds does not publish Last-Modified at all, which leads to missing
+    # `modified_parsed` attribute, which is why the following logic is needed.
+    modified = (
+        _time_struct_2_datetime(parsed_feed.modified_parsed)
+        if hasattr(parsed_feed, "modified_parsed")
+        else None
+    )
+
     return _RssFeedStub(
         id=feed_id,
-        modified=_time_struct_2_datetime(parsed_feed.modified_parsed),
+        modified=modified,
         etag=getattr(parsed_feed, "etag", None),
         posts=posts,
     )
