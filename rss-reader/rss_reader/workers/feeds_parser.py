@@ -168,16 +168,25 @@ def _save_posts(db: sa.orm.Session, feed: _RssFeedStub) -> _RssFeedStub:
     return feed
 
 
-def _update_read_timestamp(
+def _update_last_post_at_timestamp(
     db: sa.orm.Session,
     feed: _RssFeedStub,
 ) -> _RssFeedStub:
-    """Update read timestamp of RSS feed."""
+    """Update last_new_posts_at timestamp of RSS feed."""
+    last_new_posts_at = feed.modified
+    if last_new_posts_at is None and feed.posts:
+        last_new_posts_at = max(
+            feed.posts,
+            key=lambda p: p.published_at,
+        ).published_at
+
     feed_obj = db.query(models.RssFeed).get(feed.id)
-    feed_obj.last_new_posts_at = feed.modified
+    feed_obj.last_new_posts_at = last_new_posts_at
     db.add(feed_obj)
+
     logger.info("> RSS feed ID = %d. Set last_new_posts_at=%s.",
-                feed.id, feed.modified)
+                feed_obj.id, feed_obj.last_new_posts_at)
+
     return feed
 
 
@@ -190,7 +199,7 @@ def _update_etag(
     feed_obj.etag = feed.etag
     db.add(feed_obj)
     logger.info("> RSS feed ID = %d. Set etag=%s.",
-                feed.id, feed.etag)
+                feed_obj.id, feed_obj.etag)
     return feed
 
 
@@ -207,7 +216,7 @@ def save_posts_from_feeds(feeds: List[_RssFeedStub]) -> None:
         feeds,
         [
             lambda feed: _save_posts(db, feed),
-            lambda feed: _update_read_timestamp(db, feed),
+            lambda feed: _update_last_post_at_timestamp(db, feed),
             lambda feed: _update_etag(db, feed),
         ])
 
