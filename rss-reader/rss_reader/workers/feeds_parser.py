@@ -9,6 +9,7 @@ from typing import List, NamedTuple, Optional, Tuple
 import celery
 import celery.utils
 import feedparser
+import sqlalchemy as sa
 
 from rss_reader import models
 from rss_reader import utils
@@ -159,6 +160,40 @@ def parse_feed(
     )
 
 
+def _save_posts(db: sa.orm.Session, feed: _RssFeedStub) -> _RssFeedStub:
+    """Save posts from RSS feed."""
+    db.bulk_save_objects([models.Post(**p._asdict()) for p in feed.posts])
+    logger.info("> RSS feed ID = %d. Saved %d posts in DB.",
+                feed.id, len(feed.posts))
+    return feed
+
+
+def _update_read_timestamp(
+    db: sa.orm.Session,
+    feed: _RssFeedStub,
+) -> _RssFeedStub:
+    """Update read timestamp of RSS feed."""
+    feed_obj = db.query(models.RssFeed).get(feed.id)
+    feed_obj.last_new_posts_at = feed.modified
+    db.add(feed_obj)
+    logger.info("> RSS feed ID = %d. Set last_new_posts_at=%s.",
+                feed.id, feed.modified)
+    return feed
+
+
+def _update_etag(
+    db: sa.orm.Session,
+    feed: _RssFeedStub,
+) -> _RssFeedStub:
+    """Update ETag of RSS feed."""
+    feed_obj = db.query(models.RssFeed).get(feed.id)
+    feed_obj.etag = feed.etag
+    db.add(feed_obj)
+    logger.info("> RSS feed ID = %d. Set etag=%s.",
+                feed.id, feed.etag)
+    return feed
+
+
 @celery.shared_task
 def save_posts_from_feeds(feeds: List[_RssFeedStub]) -> None:
     """Save posts from RSS feeds in DB.
@@ -166,42 +201,14 @@ def save_posts_from_feeds(feeds: List[_RssFeedStub]) -> None:
     Args:
         feeds (List[_RssFeedStub]): A list of parsed RSS feeds.
     """
-
     logger.info("Saving posts from feeds...")
-
     db = db_session.SessionLocal()
-
-    def save_posts(feed: _RssFeedStub) -> _RssFeedStub:
-        """Save posts from RSS feed."""
-        db.bulk_save_objects([models.Post(**p._asdict()) for p in feed.posts])
-        logger.info("> RSS feed ID = %d. Saved %d posts in DB.",
-                    feed.id, len(feed.posts))
-        return feed
-
-    def update_read_timestamp(feed: _RssFeedStub) -> _RssFeedStub:
-        """Update read timestamp of RSS feed."""
-        feed_obj = db.query(models.RssFeed).get(feed.id)
-        feed_obj.last_new_posts_at = feed.modified
-        db.add(feed_obj)
-        logger.info("> RSS feed ID = %d. Set last_new_posts_at=%s.",
-                    feed.id, feed.modified)
-        return feed
-
-    def update_etag(feed: _RssFeedStub) -> _RssFeedStub:
-        """Update ETag of RSS feed."""
-        feed_obj = db.query(models.RssFeed).get(feed.id)
-        feed_obj.etag = feed.etag
-        db.add(feed_obj)
-        logger.info("> RSS feed ID = %d. Set etag=%s.",
-                    feed.id, feed.etag)
-        return feed
-
     utils.pipeline_each(
         feeds,
         [
-            save_posts,
-            update_read_timestamp,
-            update_etag,
+            lambda feed: _save_posts(db, feed),
+            lambda feed: _update_read_timestamp(db, feed),
+            lambda feed: _update_etag(db, feed),
         ])
 
     db.commit()
