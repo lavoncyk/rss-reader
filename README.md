@@ -1,2 +1,2 @@
 # rss-tg-bot
-Bot which allows to use Telegram as RSS reader
+Bot which allows using Telegram as RSS reader
