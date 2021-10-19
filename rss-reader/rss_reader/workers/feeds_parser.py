@@ -1,7 +1,7 @@
 """
 Module which contains RSS feed parser logic.
 """
-
+import functools
 import time
 from datetime import datetime
 from typing import List, NamedTuple, Optional, Tuple
@@ -10,6 +10,7 @@ import celery
 import celery.utils
 import feedparser
 import sqlalchemy as sa
+import sqlalchemy.orm
 
 from rss_reader import models
 from rss_reader import utils
@@ -141,18 +142,19 @@ def parse_feed(
     # possible bans from feed publishers.
     parsed_feed = feedparser.parse(url, modified=modified_at, etag=etag)
     parsed_at = datetime.utcnow().replace(microsecond=0)
-    logger.info("'%s': Fetched %d entries", url, len(parsed_feed["entries"]))
 
     posts = (_entry_2_post(feed_id, e) for e in parsed_feed["entries"])
     posts = tuple(p for p in posts if _is_post_new(p, prev_parsed_at))
-    logger.info("'%s': %d entries after removing the old ones", url, len(posts))
+
+    logger.info("Feed %d: fetched %d entries, %d new entries to be saved",
+                feed_id, len(parsed_feed["entries"]), len(posts))
 
     return _RssFeedStub(
         id=feed_id,
         url=url,
         parsed_at=parsed_at,
         # Some feeds does not publish Last-Modified or ETag at all, which leads
-        # to missing corresponding attributes, which is `.get()` is used here.
+        # to missing corresponding attributes, which is why `.get()` is used.
         modified=_time_struct_2_datetime(parsed_feed.get("modified_parsed")),
         etag=parsed_feed.get("etag"),
         posts=posts,
@@ -160,7 +162,7 @@ def parse_feed(
 
 
 def _save_posts(db: sa.orm.Session, feed: _RssFeedStub) -> _RssFeedStub:
-    """Save posts from RSS feed in DB.
+    """Save posts from RSS feed.
 
     Args:
         db (sa.orm.Session): A DB session.
@@ -173,11 +175,10 @@ def _save_posts(db: sa.orm.Session, feed: _RssFeedStub) -> _RssFeedStub:
     return feed
 
 
-def _update_last_post_at_timestamp(
-    db: sa.orm.Session,
-    feed: _RssFeedStub,
-) -> _RssFeedStub:
-    """Update last_new_posts_at timestamp of RSS feed.
+def _update_feed(db: sa.orm.Session, feed: _RssFeedStub) -> _RssFeedStub:
+    """Update parsed RSS feed.
+
+    Update feed's ETag, Last Modified, and parsed timestamp with actual values.
 
     Args:
         db (sa.orm.Session): A DB session.
@@ -187,45 +188,11 @@ def _update_last_post_at_timestamp(
         _RssFeedStub: An object representing parsed RSS feed.
     """
     feed_obj = db.query(models.RssFeed).get(feed.id)
-    feed_obj.last_new_posts_at = feed.modified or datetime.utcnow()
-    db.add(feed_obj)
-    return feed
 
-
-def _update_etag(
-    db: sa.orm.Session,
-    feed: _RssFeedStub,
-) -> _RssFeedStub:
-    """Update ETag of RSS feed.
-
-    Args:
-        db (sa.orm.Session): A DB session.
-        feed (_RssFeedStub): An object representing parsed RSS feed.
-
-    Returns:
-        _RssFeedStub: An object representing parsed RSS feed.
-    """
-    feed_obj = db.query(models.RssFeed).get(feed.id)
+    feed_obj.modified_at = feed.modified
     feed_obj.etag = feed.etag
-    db.add(feed_obj)
-    return feed
-
-
-def _update_parsed_at(
-    db: sa.orm.Session,
-    feed: _RssFeedStub,
-) -> _RssFeedStub:
-    """Update parsed timestamp of RSS feed.
-
-    Args:
-        db (sa.orm.Session): A DB session.
-        feed (_RssFeedStub): An object representing parsed RSS feed.
-
-    Returns:
-        _RssFeedStub: An object representing parsed RSS feed.
-    """
-    feed_obj = db.query(models.RssFeed).get(feed.id)
     feed_obj.parsed_at = feed.parsed_at
+
     db.add(feed_obj)
     return feed
 
@@ -234,17 +201,21 @@ def _update_parsed_at(
 def save_posts_from_feeds(feeds: List[_RssFeedStub]) -> None:
     """Save posts from RSS feeds in DB.
 
+    Save posts parsed from RSS feeds and update feeds in DB (ETag,
+    Last Modified, and parsed timestamp).
+
     Args:
         feeds (List[_RssFeedStub]): A list of parsed RSS feeds.
     """
     db = db_session.SessionLocal()
+    save_posts = functools.partial(_save_posts, db)
+    upd_feed = functools.partial(_update_feed, db)
+
     utils.pipeline_each(
         feeds,
         [
-            lambda feed: _save_posts(db, feed),
-            lambda feed: _update_last_post_at_timestamp(db, feed),
-            lambda feed: _update_etag(db, feed),
-            lambda feed: _update_parsed_at(db, feed),
+            save_posts,
+            upd_feed,
         ])
 
     db.commit()
