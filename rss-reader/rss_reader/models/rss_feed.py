@@ -14,7 +14,8 @@ class RssFeed(base.Base):
     """
     name = sa.Column(sa.String(255), nullable=False)
     url = sa.Column(sa.Text, nullable=False)
-    last_new_posts_at = sa.Column(sa.DateTime, nullable=True)
+    parsed_at = sa.Column(sa.DateTime, nullable=True)
+    modified_at = sa.Column(sa.DateTime, nullable=True)
     etag = sa.Column(sa.Text, nullable=True)
     created_at = sa.Column(
         sa.DateTime,

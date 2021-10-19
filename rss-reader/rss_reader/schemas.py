@@ -38,7 +38,8 @@ class RssFeed(RssFeedBase):
     id: int
     name: str
     url: HttpUrl
-    last_new_posts_at: Optional[datetime]
+    parsed_at: Optional[datetime]
+    modified_at: Optional[datetime]
     etag: Optional[str]
     created_at: datetime
 

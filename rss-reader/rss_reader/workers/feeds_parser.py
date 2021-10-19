@@ -25,7 +25,7 @@ def load_new_posts_from_feeds() -> None:
     db = db_session.SessionLocal()
 
     parse_feed_jobs = [
-        parse_feed.signature((f.id, f.url, f.last_new_posts_at, f.etag))
+        parse_feed.signature((f.id, f.url, f.parsed_at, f.modified_at, f.etag))
         for f in db.query(models.RssFeed).all()
     ]
 
@@ -36,6 +36,7 @@ def load_new_posts_from_feeds() -> None:
 
 
 class _PostStub(NamedTuple):
+    """Post stub."""
     title: str
     url: str
     published_at: datetime
@@ -82,7 +83,7 @@ def _entry_2_post(rss_feed_id: int, entry: dict) -> _PostStub:
 
 def _is_post_new(
     post: _PostStub,
-    last_new_posts_at: Optional[datetime],
+    prev_parsed_at: Optional[datetime],
 ) -> bool:
     """Check if post is new.
 
@@ -90,23 +91,26 @@ def _is_post_new(
 
     Args:
         post (_PostStub): A post to check.
-        last_new_posts_at (Optional[datetime]): A datetime when last post
+        prev_parsed_at (Optional[datetime]): A datetime when last post
             was published.
 
     Returns:
         bool: True if post is new, False otherwise.
     """
     return (
-        post.published_at > last_new_posts_at
-        if last_new_posts_at is not None
+        post.published_at > prev_parsed_at
+        if prev_parsed_at is not None
         else True
     )
 
 
 class _RssFeedStub(NamedTuple):
+    """RSS Feed stub."""
     id: int
-    modified: datetime
-    etag: str
+    url: str
+    parsed_at: datetime
+    modified: Optional[datetime]
+    etag: Optional[str]
     posts: Tuple[_PostStub]
 
 
@@ -114,7 +118,8 @@ class _RssFeedStub(NamedTuple):
 def parse_feed(
     feed_id: int,
     url: str,
-    last_new_posts_at: Optional[datetime],
+    prev_parsed_at: Optional[datetime],
+    modified_at: Optional[datetime],
     etag: Optional[str],
 ) -> _RssFeedStub:
     """Parse RSS feed.
@@ -122,49 +127,49 @@ def parse_feed(
     Args:
         feed_id (int): A feed ID in DB.
         url (str): A feed URL.
-        last_new_posts_at (Optional[datetime]): A time of last new post in feed.
+        prev_parsed_at (Optional[datetime]): A feed previously parsed timestamp.
+        modified_at (Optional[datetime]): A modified time published by feed.
         etag (Optional[str]): An ETag published by feed.
 
     Returns:
         _RssFeedStub: An object representing parsed RSS feed.
     """
 
-    logger.info("Parsing feed '%s'...", url)
-
     # Clients should support both ETag and Last-Modified headers, as some
     # servers support one but not the other. These are needed to avoid
     # download feeds that have not changed, save bandwidth, and prevent
     # possible bans from feed publishers.
-    parsed_feed = feedparser.parse(url, modified=last_new_posts_at, etag=etag)
-    logger.info("> Fetched %d entries from '%s' RSS feed.",
-                len(parsed_feed.entries), url)
+    parsed_feed = feedparser.parse(url, modified=modified_at, etag=etag)
+    parsed_at = datetime.utcnow().replace(microsecond=0)
+    logger.info("'%s': Fetched %d entries", url, len(parsed_feed["entries"]))
 
-    posts = (_entry_2_post(feed_id, e) for e in parsed_feed.entries)
-    posts = tuple(p for p in posts if _is_post_new(p, last_new_posts_at))
-    logger.info("> Found %d new posts among fetched entries for '%s' RSS feed",
-                len(posts), url)
-
-    # Some feeds does not publish Last-Modified at all, which leads to missing
-    # `modified_parsed` attribute, which is why the following logic is needed.
-    modified = (
-        _time_struct_2_datetime(parsed_feed.modified_parsed)
-        if hasattr(parsed_feed, "modified_parsed")
-        else None
-    )
+    posts = (_entry_2_post(feed_id, e) for e in parsed_feed["entries"])
+    posts = tuple(p for p in posts if _is_post_new(p, prev_parsed_at))
+    logger.info("'%s': %d entries after removing the old ones", url, len(posts))
 
     return _RssFeedStub(
         id=feed_id,
-        modified=modified,
-        etag=getattr(parsed_feed, "etag", None),
+        url=url,
+        parsed_at=parsed_at,
+        # Some feeds does not publish Last-Modified or ETag at all, which leads
+        # to missing corresponding attributes, which is `.get()` is used here.
+        modified=_time_struct_2_datetime(parsed_feed.get("modified_parsed")),
+        etag=parsed_feed.get("etag"),
         posts=posts,
     )
 
 
 def _save_posts(db: sa.orm.Session, feed: _RssFeedStub) -> _RssFeedStub:
-    """Save posts from RSS feed."""
+    """Save posts from RSS feed in DB.
+
+    Args:
+        db (sa.orm.Session): A DB session.
+        feed (_RssFeedStub): An object representing parsed RSS feed.
+
+    Returns:
+        _RssFeedStub: An object representing parsed RSS feed.
+    """
     db.bulk_save_objects([models.Post(**p._asdict()) for p in feed.posts])
-    logger.info("> RSS feed ID = %d. Saved %d posts in DB.",
-                feed.id, len(feed.posts))
     return feed
 
 
@@ -172,21 +177,18 @@ def _update_last_post_at_timestamp(
     db: sa.orm.Session,
     feed: _RssFeedStub,
 ) -> _RssFeedStub:
-    """Update last_new_posts_at timestamp of RSS feed."""
-    last_new_posts_at = feed.modified
-    if last_new_posts_at is None and feed.posts:
-        last_new_posts_at = max(
-            feed.posts,
-            key=lambda p: p.published_at,
-        ).published_at
+    """Update last_new_posts_at timestamp of RSS feed.
 
+    Args:
+        db (sa.orm.Session): A DB session.
+        feed (_RssFeedStub): An object representing parsed RSS feed.
+
+    Returns:
+        _RssFeedStub: An object representing parsed RSS feed.
+    """
     feed_obj = db.query(models.RssFeed).get(feed.id)
-    feed_obj.last_new_posts_at = last_new_posts_at
+    feed_obj.last_new_posts_at = feed.modified or datetime.utcnow()
     db.add(feed_obj)
-
-    logger.info("> RSS feed ID = %d. Set last_new_posts_at=%s.",
-                feed_obj.id, feed_obj.last_new_posts_at)
-
     return feed
 
 
@@ -194,12 +196,37 @@ def _update_etag(
     db: sa.orm.Session,
     feed: _RssFeedStub,
 ) -> _RssFeedStub:
-    """Update ETag of RSS feed."""
+    """Update ETag of RSS feed.
+
+    Args:
+        db (sa.orm.Session): A DB session.
+        feed (_RssFeedStub): An object representing parsed RSS feed.
+
+    Returns:
+        _RssFeedStub: An object representing parsed RSS feed.
+    """
     feed_obj = db.query(models.RssFeed).get(feed.id)
     feed_obj.etag = feed.etag
     db.add(feed_obj)
-    logger.info("> RSS feed ID = %d. Set etag=%s.",
-                feed_obj.id, feed_obj.etag)
+    return feed
+
+
+def _update_parsed_at(
+    db: sa.orm.Session,
+    feed: _RssFeedStub,
+) -> _RssFeedStub:
+    """Update parsed timestamp of RSS feed.
+
+    Args:
+        db (sa.orm.Session): A DB session.
+        feed (_RssFeedStub): An object representing parsed RSS feed.
+
+    Returns:
+        _RssFeedStub: An object representing parsed RSS feed.
+    """
+    feed_obj = db.query(models.RssFeed).get(feed.id)
+    feed_obj.parsed_at = feed.parsed_at
+    db.add(feed_obj)
     return feed
 
 
@@ -210,7 +237,6 @@ def save_posts_from_feeds(feeds: List[_RssFeedStub]) -> None:
     Args:
         feeds (List[_RssFeedStub]): A list of parsed RSS feeds.
     """
-    logger.info("Saving posts from feeds...")
     db = db_session.SessionLocal()
     utils.pipeline_each(
         feeds,
@@ -218,6 +244,7 @@ def save_posts_from_feeds(feeds: List[_RssFeedStub]) -> None:
             lambda feed: _save_posts(db, feed),
             lambda feed: _update_last_post_at_timestamp(db, feed),
             lambda feed: _update_etag(db, feed),
+            lambda feed: _update_parsed_at(db, feed),
         ])
 
     db.commit()
