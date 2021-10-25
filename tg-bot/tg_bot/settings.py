@@ -21,6 +21,7 @@ def get_env_var(
 
 
 TG_BOT_TOKEN = get_env_var("TG_BOT_TOKEN", required=True)
+RSS_API_URL = get_env_var("RSS_API_URL", required=True)
 FETCH_UPDATES_INTERVAL = get_env_var(
     "FETCH_UPDATES_INTERVAL", cast=int, default=5
 )
