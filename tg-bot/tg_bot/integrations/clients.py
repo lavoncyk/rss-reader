@@ -72,6 +72,10 @@ class BaseClient:
         return self._perform_request(url, method="put", data=data,
                                      headers=headers)
 
+    def delete(self, url: str, headers: dict = None):
+        """Performs DELETE HTTP request to given URL."""
+        return self._perform_request(url, method="delete", headers=headers)
+
 
 class PostsClient(BaseClient):
     """Posts client."""
@@ -79,3 +83,15 @@ class PostsClient(BaseClient):
     def fetch_posts(self) -> list:
         """Fetch posts parsed from RSS feeds."""
         return self.get("/posts")
+
+
+class FeedsClient(BaseClient):
+    """RSS feeds client"""
+
+    def add_feed(self, name: str, url: str) -> dict:
+        """Add new RSS feed."""
+        return self.post("/feeds", data={"name": name, "url": url})
+
+    def remove_feed(self, feed_id: int) -> dict:
+        """Remove RSS feed."""
+        return self.delete(f"/feeds/{feed_id}")
