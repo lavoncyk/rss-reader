@@ -13,7 +13,7 @@ def help(
     pass
 
 
-def add_rss_feed(
+def add_feed(
     update: telegram.Update,
     context: telegram.ext.CallbackContext,
 ) -> None:
@@ -21,7 +21,7 @@ def add_rss_feed(
     pass
 
 
-def remove_rss_feed(
+def del_feed(
     update: telegram.Update,
     context: telegram.ext.CallbackContext,
 ) -> None:

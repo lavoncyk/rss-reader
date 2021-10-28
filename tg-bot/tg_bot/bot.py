@@ -1,33 +1,48 @@
-
+"""
+Module with TG bot configuring logic.
+"""
 
 import telegram
-import telegram.ext
+import telegram.ext as tg_ext
 
 import commands
 import jobs
 import settings
 
 
-def main() -> None:
-    """
-    Configure and start telegram bot.
-    """
-    updater = telegram.ext.Updater(settings.TG_BOT_TOKEN)
+def _add_command_handlers(bot: telegram.ext.Updater) -> None:
+    """Add command handlers for bot.
 
-    command_handlers = [
-        telegram.ext.CommandHandler("help", commands.help),
-        telegram.ext.CommandHandler("add-rss-feed", commands.add_rss_feed),
-        telegram.ext.CommandHandler("del-rss-feed", commands.remove_rss_feed),
-    ]
-    dispatcher = updater.dispatcher
-    for handler in command_handlers:
-        dispatcher.add_handler(handler)
+    Args:
+        bot (telegram.ext.Updater): A bot instance.
+    """
+    disp = bot.dispatcher
+    disp.add_handler(tg_ext.CommandHandler("help", commands.help))
+    disp.add_handler(tg_ext.CommandHandler("addfeed", commands.add_feed))
+    disp.add_handler(tg_ext.CommandHandler("delfeed", commands.del_feed))
 
-    job_queue = updater.job_queue
+
+def _add_jobs(bot: telegram.ext.Updater) -> None:
+    """Add jobs for bot.
+
+    Args:
+        bot (telegram.ext.Updater): A bot instance.
+    """
+    job_queue = bot.job_queue
     job_queue.run_repeating(
         jobs.fetch_feeds,
         interval=float(settings.FETCH_UPDATES_INTERVAL),
     )
+
+
+def main() -> None:
+    """
+    Configure and start telegram bot.
+    """
+    updater = tg_ext.Updater(settings.TG_BOT_TOKEN)
+
+    _add_command_handlers(updater)
+    _add_jobs(updater)
 
     updater.start_polling()
     updater.idle()
