@@ -1,0 +1,59 @@
+
+.feed {
+  padding: 35px 20px 0;
+}
+
+.feed-header {
+  margin-bottom: 15px;
+  line-height: 1em;
+}
+
+.feed-header img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  vertical-align: middle;
+  float: left;
+}
+
+.feed-header a {
+  font-size: 130%;
+  line-height: 1.3em;
+  color: var(--link-color);
+  font-weight: bold;
+}
+
+.feed-header small {
+  font-size: 70%;
+  opacity: 0.7;
+  line-height: 1.0em;
+}
+
+.container,
+.feed-body {
+  flex-direction: column;
+  margin-bottom: 40px;
+}
+
+.post {
+  margin-bottom: 8px;
+  height: 20px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.post a:visited {
+  color: var(--visited-link-color);
+}
+
+.post a:focus {
+  background-color: var(--opposite-bg-color);
+  color: var(--opposite-text-color);
+  outline-width: 0;
+}
+
+.post a:hover {
+  color: var(--hovered-link-color);
+}

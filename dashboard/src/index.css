@@ -11,3 +11,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+html, html[theme="light"] {
+
+  --bg-color: #FFF;
+  --opposite-bg-color: #282c35;
+
+  --text-color: #333;
+  --brighter-text-color: #000;
+  --opposite-text-color: #DDD;
+
+  --link-color: #333;
+  --visited-link-color: #afafaf;
+  --hovered-link-color: #9b9b9b;
+}
+
+a {
+  color: var(--link-color);
+  transition: color linear .1s;
+  text-decoration: none;
+}
+
+.container {
+  display: flex;
+}

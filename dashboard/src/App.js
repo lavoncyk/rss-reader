@@ -1,5 +1,7 @@
 import React from "react";
 
+import Feed from "./components/Feed";
+
 class App extends React.Component {
   render() {
 
@@ -227,6 +229,7 @@ class App extends React.Component {
 
     return (
       <div className="App">
+        <Feed postsData={postsData} feedData={feedData} />
       </div>
     )
   }
