@@ -32,6 +32,16 @@ a {
   text-decoration: none;
 }
 
-.container {
-  display: flex;
+@media only screen and (max-width : 1024px)  {
+  /* Switch 3 to 2-columns */
+  .board-3 .feed {
+    width: 50%;
+  }
+}
+
+@media only screen and (max-width : 750px) {
+  /* Single column everywhere */
+  .board .feed {
+      width: 100%;
+  }
 }

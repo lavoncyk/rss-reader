@@ -1,6 +1,6 @@
 import React from "react";
 
-import Feed from "./components/Feed";
+import Board from "./components/Board";
 
 class App extends React.Component {
   render() {
@@ -229,7 +229,7 @@ class App extends React.Component {
 
     return (
       <div className="App">
-        <Feed postsData={postsData} feedData={feedData} />
+        <Board postsData={postsData} feedData={feedData} />
       </div>
     )
   }
