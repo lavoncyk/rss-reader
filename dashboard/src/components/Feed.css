@@ -1,6 +1,9 @@
 
 .feed {
   padding: 35px 20px 0;
+  width: 100%;
+  min-width: 200px;
+  box-sizing: border-box;
 }
 
 .feed-header {
@@ -29,8 +32,8 @@
   line-height: 1.0em;
 }
 
-.container,
 .feed-body {
+  display: flex;
   flex-direction: column;
   margin-bottom: 40px;
 }
