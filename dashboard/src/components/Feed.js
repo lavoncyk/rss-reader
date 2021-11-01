@@ -10,7 +10,7 @@ class Feed extends React.Component {
 
   fetchData = () => {
     const { feedData } = this.props;
-    fetch(`http://localhost:8080/api/feeds/${feedData.id}/posts`)
+    fetch(`http://localhost:8080/api/feeds/${feedData.id}/posts?limit=15`)
       .then(res => res.json())
       .then(data => this.setState({ postsData: data }))
       .catch(console.log);
