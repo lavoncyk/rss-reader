@@ -1,3 +1,4 @@
+import moment from "moment";
 import React from "react";
 
 import './Feed.css'
@@ -16,6 +17,14 @@ class Feed extends React.Component {
       .catch(console.log);
   }
 
+  calculateLastUpdate = () => {
+    const { postsData } = this.state;
+    const lastPostAt = new Date(
+      Math.max(...postsData.map(post => new Date(post.published_at)))
+    );
+    return moment(lastPostAt).fromNow();
+  }
+
   componentDidMount() {
     this.fetchData();
   }
@@ -23,9 +32,10 @@ class Feed extends React.Component {
   render() {
     const { feedData } = this.props;
     const { postsData }  = this.state;
+    const lastPostAt = this.calculateLastUpdate();
     return (
       <div className="feed">
-        <FeedHeader feedData={feedData} />
+        <FeedHeader feedData={feedData} lastPostAt={lastPostAt} />
         <FeedBody postsData={postsData} />
       </div>
     )
@@ -35,6 +45,7 @@ class Feed extends React.Component {
 
 const FeedHeader = (props) => {
   const { feedData } = props;
+  const { lastPostAt } = props;
 
   const feedUrl = (new URL(feedData.url)).origin;
   const iconUrl = new URL("/favicon.ico", feedUrl);
@@ -47,8 +58,7 @@ const FeedHeader = (props) => {
       </a>
       <br/>
       <small>
-        {/* TODO: calculate last post time */}
-        Last post 30 minutes ago
+        Last post {lastPostAt}
       </small>
     </div>
   )
