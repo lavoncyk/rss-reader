@@ -5,18 +5,33 @@ import './Board.css'
 
 class Board extends React.Component {
 
-  render() {
-    const feedData = this.props.feedData
-    const postsData = this.props.postsData
+  state = {
+    feedsData: [],
+  }
 
+  fetchData = () => {
+    fetch(`http://localhost:8080/api/feeds`)
+      .then(res => res.json())
+      .then(data => this.setState({ feedsData: data }))
+      .catch(console.log);
+  }
+
+  componentDidMount() {
+    this.fetchData();
+  }
+
+  render() {
+    const { feedsData } = this.state;
+    const feeds = feedsData.map((feed, index) => {
+      return <Feed key={index} feedData={feed} />
+    });
     return (
       <div className="board board-3">
-        <Feed postsData={postsData} feedData={feedData} />
-        <Feed postsData={postsData} feedData={feedData} />
-        <Feed postsData={postsData} feedData={feedData} />
+        {feeds}
       </div>
     );
   }
+
 }
 
 export default Board
