@@ -6,6 +6,7 @@ from typing import List
 
 import fastapi
 import sqlalchemy as sa
+import sqlalchemy.orm
 from fastapi import params
 
 from rss_reader import crud

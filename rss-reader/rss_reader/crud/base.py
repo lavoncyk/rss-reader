@@ -6,6 +6,7 @@ from typing import Any, Generic, List, Optional, Type, TypeVar
 
 import pydantic
 import sqlalchemy as sa
+import sqlalchemy.orm
 from fastapi import encoders
 
 from rss_reader.models import base as base_model
