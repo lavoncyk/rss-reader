@@ -5,6 +5,7 @@ Module with the API dependencies.
 from typing import Generator
 
 import sqlalchemy as sa
+import sqlalchemy.orm
 
 from rss_reader.db import session
 

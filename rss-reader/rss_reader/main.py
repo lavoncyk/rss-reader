@@ -5,15 +5,13 @@ Module with app configuring logic.
 import fastapi
 from fastapi.middleware import cors
 
-from rss_reader.api import post
-from rss_reader.api import rss_feed
+from rss_reader.api import api
 from rss_reader.config import settings
 
 
 app = fastapi.FastAPI()
 
-app.include_router(post.router)
-app.include_router(rss_feed.router)
+app.include_router(api.api_router)
 
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
