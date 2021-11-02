@@ -2,9 +2,9 @@
 Module which contains RSS Feed CRUD operations.
 """
 
+from rss_reader.api import schemas
 from rss_reader.crud import base
 from rss_reader import models
-from rss_reader import schemas
 
 
 class CrudRssFeed(

@@ -10,8 +10,8 @@ import sqlalchemy.orm
 from fastapi import params
 
 from rss_reader import crud
-from rss_reader import schemas
 from rss_reader.api import deps
+from rss_reader.api import schemas
 
 
 router = fastapi.APIRouter(
