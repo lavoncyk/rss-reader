@@ -1,7 +1,9 @@
 """
 Module with the Post model.
 """
+
 import sqlalchemy as sa
+import sqlalchemy.orm
 
 from rss_reader.models import base
 from rss_reader.models import mixins

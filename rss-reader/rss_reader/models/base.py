@@ -17,4 +17,7 @@ class Base:
 
     @declarative.declared_attr
     def __tablename__(cls) -> str:
-        return f"{utils.underscore_from_camelcase(cls.__name__)}s"
+        tablename = f"{utils.underscore_from_camelcase(cls.__name__)}s"
+        if tablename.endswith("ys"):
+            tablename = f"{tablename[:-2]}ies"
+        return tablename
