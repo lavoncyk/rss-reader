@@ -1,7 +1,8 @@
 import moment from "moment";
 import React from "react";
 
-import './Feed.css'
+import {listLatestPostsByFeed} from "../clients/posts-client";
+import './Feed.css';
 
 class Feed extends React.Component {
 
@@ -11,8 +12,7 @@ class Feed extends React.Component {
 
   fetchData = () => {
     const { feedData } = this.props;
-    fetch(`http://localhost:8080/api/feeds/${feedData.id}/posts?limit=15`)
-      .then(res => res.json())
+    listLatestPostsByFeed(feedData.id)
       .then(data => this.setState({ postsData: data }))
       .catch(console.log);
   }

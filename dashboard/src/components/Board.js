@@ -1,7 +1,8 @@
 import React from "react";
 
+import {listFeeds} from "../clients/feeds-client";
 import Feed from "./Feed";
-import './Board.css'
+import './Board.css';
 
 class Board extends React.Component {
 
@@ -10,8 +11,7 @@ class Board extends React.Component {
   }
 
   fetchData = () => {
-    fetch(`http://localhost:8080/api/feeds`)
-      .then(res => res.json())
+    listFeeds()
       .then(data => this.setState({ feedsData: data }))
       .catch(console.log);
   }
