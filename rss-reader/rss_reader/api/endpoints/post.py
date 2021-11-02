@@ -23,6 +23,7 @@ router = fastapi.APIRouter(
 async def read_posts(
     db: sa.orm.Session = fastapi.Depends(deps.get_db),
     cache_control: deps.CacheControl = fastapi.Depends(),
+    order_by: List[dict] = fastapi.Depends(deps.get_order_by_query_param),
     skip: int = 0,
     limit: int = 100,
 ):
@@ -30,7 +31,7 @@ async def read_posts(
     List posts.
     """
     cache_control.set(f"max-age: {settings.RSS_PARSE_FEEDS_INTERVAL}, public")
-    return crud.post.get_multiple(db, skip=skip, limit=limit)
+    return crud.post.get_multiple(db, skip=skip, limit=limit, order_by=order_by)
 
 
 @router.get("/posts/{id}", response_model=schemas.Post)
@@ -55,6 +56,7 @@ async def read_feed_posts(
     *,
     db: sa.orm.Session = fastapi.Depends(deps.get_db),
     cache_control: deps.CacheControl = fastapi.Depends(),
+    order_by: List[dict] = fastapi.Depends(deps.get_order_by_query_param),
     id: int,
     skip: int = 0,
     limit: int = 100,
@@ -71,4 +73,5 @@ async def read_feed_posts(
         feed_id=id,
         skip=skip,
         limit=limit,
+        order_by=order_by,
     )

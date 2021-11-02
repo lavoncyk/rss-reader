@@ -23,13 +23,16 @@ router = fastapi.APIRouter(
 @router.get("/", response_model=List[schemas.RssFeed])
 async def read_feeds(
     db: sa.orm.Session = params.Depends(deps.get_db),
+    order_by: List[dict] = fastapi.Depends(deps.get_order_by_query_param),
     skip: int = 0,
     limit: int = 100,
 ):
     """
     Retrieve RSS feeds.
     """
-    return crud.rss_feed.get_multiple(db, skip=skip, limit=limit)
+    return crud.rss_feed.get_multiple(
+        db, skip=skip, limit=limit, order_by=order_by
+    )
 
 
 @router.post("/", response_model=schemas.RssFeed)

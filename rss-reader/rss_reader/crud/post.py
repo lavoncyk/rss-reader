@@ -26,6 +26,7 @@ class CrudPost(
         feed_id: int,
         skip: int = 0,
         limit: int = 100,
+        order_by: List[dict] = None,
     ) -> List[models.Post]:
         """List posts based on RSS feed.
 
@@ -34,17 +35,18 @@ class CrudPost(
             feed_id (int): A feed ID.
             skip (int, optional): Offset. Defaults to 0.
             limit (int, optional): Number of objects to fetch. Defaults to 100.
+            order_by (List[dict]): A list of dicts with keys "name" (the name
+                of the field by which to sort) and "desc" (optional; do reverse
+                sort if True).
 
         Returns:
             List[ModelType]: List of found objects.
         """
-        return (
-            db.query(self.model)
-            .filter(models.Post.rss_feed_id == feed_id)
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        query = db.query(self.model).filter(models.Post.rss_feed_id == feed_id)
+        query = self._apply_order_by(query, order_by)
+        query = query.limit(limit).offset(skip)
+
+        return query.all()
 
 
 post = CrudPost(models.Post)
