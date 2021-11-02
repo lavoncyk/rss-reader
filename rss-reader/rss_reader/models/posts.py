@@ -4,9 +4,10 @@ Module with the Post model.
 import sqlalchemy as sa
 
 from rss_reader.models import base
+from rss_reader.models import mixins
 
 
-class Post(base.Base):
+class Post(mixins.WithCreatedAt, base.Base):
     """
     Post model.
     """

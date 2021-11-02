@@ -1,14 +1,14 @@
 """
 Module with the Rss Feed model.
 """
-from datetime import datetime
 
 import sqlalchemy as sa
 
 from rss_reader.models import base
+from rss_reader.models import mixins
 
 
-class RssFeed(base.Base):
+class RssFeed(mixins.WithCreatedAt, base.Base):
     """
     Rss Feed model.
     """
@@ -17,8 +17,3 @@ class RssFeed(base.Base):
     parsed_at = sa.Column(sa.DateTime, nullable=True)
     modified_at = sa.Column(sa.DateTime, nullable=True)
     etag = sa.Column(sa.Text, nullable=True)
-    created_at = sa.Column(
-        sa.DateTime,
-        nullable=False,
-        default=lambda: datetime.utcnow().replace(microsecond=0),
-    )
