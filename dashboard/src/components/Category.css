@@ -1,0 +1,28 @@
+
+.category {
+  position: relative;
+  margin-bottom: 100px;
+}
+
+.category-header {
+  font-size: 180%;
+  text-align: center;
+  border-bottom: solid 2px var(--text-color);
+  min-height: 45px;
+  font-weight: bold;
+}
+
+.category-body {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.category-body-3 .feed {
+  width: 33%;
+}
+
+.category-body-2 .feed {
+  width: 50%;
+}

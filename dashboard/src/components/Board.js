@@ -1,7 +1,8 @@
+import _ from "lodash";
 import React from "react";
 
 import {listFeeds} from "../clients/feeds-client";
-import Feed from "./Feed";
+import Category from "./Category";
 import './Board.css';
 
 class Board extends React.Component {
@@ -22,12 +23,18 @@ class Board extends React.Component {
 
   render() {
     const { feedsData } = this.state;
-    const feeds = feedsData.map((feed, index) => {
-      return <Feed key={index} feedData={feed} />
+    const groupedFeedsData = _(feedsData)
+      .groupBy('category.slug')
+      .map(g => ({...g[0].category, feeds: g}))
+      .value();
+
+    const categories = groupedFeedsData.map((categoryData, index) => {
+      return <Category key={index} categoryData={categoryData} />
     });
+
     return (
-      <div className="board board-3">
-        {feeds}
+      <div className="board">
+        {categories}
       </div>
     );
   }
