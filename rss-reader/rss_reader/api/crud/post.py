@@ -7,13 +7,12 @@ from typing import List
 import sqlalchemy as sa
 import sqlalchemy.orm
 
-from rss_reader.api import schemas
 from rss_reader.api.crud import base
 from rss_reader import models
 
 
 class CrudPost(
-    base.CrudBase[models.Post, schemas.PostCreate, schemas.PostUpdate],
+    base.ReadonlyCrudBase[models.Post],
 ):
     """
     Post CRUD class.

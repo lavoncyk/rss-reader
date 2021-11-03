@@ -17,9 +17,9 @@ CreateSchemaType = TypeVar("CreateSchemaType", bound=pydantic.BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=pydantic.BaseModel)
 
 
-class CrudBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+class ReadonlyCrudBase(Generic[ModelType]):
     """
-    Base CRUD class.
+    Base read-only CRUD class.
     """
     def __init__(self, model: Type[ModelType]):
         self.model = model
@@ -62,6 +62,49 @@ class CrudBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         query = query.offset(skip).limit(limit)
 
         return query.all()
+
+    def _get_order_by(self, order_by: dict) -> Any:
+        """Get ORDER BY statement."""
+
+        # transform order_by["name"] into a model's field
+        attr_name = order_by["name"].lower()
+        order = getattr(self.model, attr_name, None)
+        if order_by.get("desc", False) and order is not None:
+            order = order.desc()
+
+        return order
+
+    def _apply_order_by(
+        self, query: sa.orm.Query, order_by: List[dict] = None
+    ) -> sa.orm.Query:
+        """Apply ORDER BY statements to query.
+
+        Args:
+            query (sa.orm.Query): A query.
+            order_by (List[dict]): A list of dicts with keys "name" (the name
+                of the field by which to sort) and "desc" (optional; do reverse
+                sort if True). Defaults to None.
+
+        Returns:
+            sa.orm.Query: A query with applied ORDER BY clause.
+        """
+        if order_by is None:
+            return query
+        orders = [
+            self._get_order_by(clause)
+            for clause in order_by
+        ]
+
+        return query.order_by(*orders)
+
+
+class CrudBase(
+    ReadonlyCrudBase[ModelType],
+    Generic[ModelType, CreateSchemaType, UpdateSchemaType],
+):
+    """
+    Base CRUD class.
+    """
 
     def create(
         self, db: sa.orm.Session, *, create_src: CreateSchemaType
@@ -126,37 +169,3 @@ class CrudBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.delete(obj)
             db.commit()
         return obj
-
-    def _get_order_by(self, order_by: dict) -> Any:
-        """Get ORDER BY statement."""
-
-        # transform order_by["name"] into a model's field
-        attr_name = order_by["name"].lower()
-        order = getattr(self.model, attr_name, None)
-        if order_by.get("desc", False) and order is not None:
-            order = order.desc()
-
-        return order
-
-    def _apply_order_by(
-        self, query: sa.orm.Query, order_by: List[dict] = None
-    ) -> sa.orm.Query:
-        """Apply ORDER BY statements to query.
-
-        Args:
-            query (sa.orm.Query): A query.
-            order_by (List[dict]): A list of dicts with keys "name" (the name
-                of the field by which to sort) and "desc" (optional; do reverse
-                sort if True). Defaults to None.
-
-        Returns:
-            sa.orm.Query: A query with applied ORDER BY clause.
-        """
-        if order_by is None:
-            return query
-        orders = [
-            self._get_order_by(clause)
-            for clause in order_by
-        ]
-
-        return query.order_by(*orders)

@@ -8,18 +8,6 @@ import pydantic
 from pydantic.networks import HttpUrl
 
 
-class PostCreate(pydantic.BaseModel):
-    """
-    Model used for Post creation.
-    """
-
-
-class PostUpdate(pydantic.BaseModel):
-    """
-    Model used for Post update.
-    """
-
-
 class Post(pydantic.BaseModel):
     """
     Model used for post representation.
