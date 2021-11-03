@@ -8,7 +8,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm
 
 from rss_reader.api import schemas
-from rss_reader.crud import base
+from rss_reader.api.crud import base
 from rss_reader import models
 
 

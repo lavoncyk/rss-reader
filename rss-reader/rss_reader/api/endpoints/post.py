@@ -8,7 +8,7 @@ import fastapi
 import sqlalchemy as sa
 import sqlalchemy.orm
 
-from rss_reader import crud
+from rss_reader.api import crud
 from rss_reader.api import deps
 from rss_reader.api import schemas
 from rss_reader.config import settings
