@@ -16,6 +16,8 @@ class RssFeed(mixins.WithCreatedAt, base.Base):
 
     name = sa.Column(sa.String(255), nullable=False)
     url = sa.Column(sa.Text, nullable=False)
+    rss = sa.Column(sa.Text, nullable=False)
+    icon = sa.Column(sa.Text, nullable=True)
     parsed_at = sa.Column(sa.DateTime, nullable=True)
 
     # The modified_at and etag columns are provided by the RSS feed publisher

@@ -26,7 +26,7 @@ def load_new_posts_from_feeds() -> None:
     db = db_session.SessionLocal()
 
     parse_feed_jobs = [
-        parse_feed.signature((f.id, f.url, f.parsed_at, f.modified_at, f.etag))
+        parse_feed.signature((f.id, f.rss, f.parsed_at, f.modified_at, f.etag))
         for f in db.query(models.RssFeed).all()
     ]
 

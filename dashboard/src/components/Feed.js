@@ -47,13 +47,10 @@ const FeedHeader = (props) => {
   const { feedData } = props;
   const { lastPostAt } = props;
 
-  const feedUrl = (new URL(feedData.url)).origin;
-  const iconUrl = new URL("/favicon.ico", feedUrl);
-
   return (
     <div className="feed-header">
-      <img src={iconUrl} alt={feedData.name} />
-      <a href={feedUrl} target="_blank" rel="noopener noreferrer nofollow">
+      <img src={feedData.icon} alt={feedData.name} />
+      <a href={feedData.url} target="_blank" rel="noopener noreferrer nofollow">
         {feedData.name}
       </a>
       <br/>
