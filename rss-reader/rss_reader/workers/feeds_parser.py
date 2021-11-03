@@ -74,12 +74,19 @@ def _entry_2_post(rss_feed_id: int, entry: dict) -> _PostStub:
     Returns:
         _PostStub: An object representing post from RSS feed.
     """
-    return _PostStub(
-        title=entry["title"],
-        url=entry["link"],
-        published_at=_time_struct_2_datetime(entry["published_parsed"]),
-        rss_feed_id=rss_feed_id,
-    )
+    try:
+        return _PostStub(
+            title=entry["title"],
+            url=entry["link"],
+            published_at=_time_struct_2_datetime(entry["published_parsed"]),
+            rss_feed_id=rss_feed_id,
+        )
+    except KeyError as err:
+        logger.error(
+            "The %s key is not present in parsed entry for feed %s",
+            err, rss_feed_id
+        )
+        raise
 
 
 def _is_post_new(
