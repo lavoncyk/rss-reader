@@ -14,6 +14,7 @@ import sqlalchemy.orm
 from rss_reader import models
 from rss_reader import utils
 from rss_reader.workers.tasks import base
+from rss_reader.workers.tasks import exceptions
 from rss_reader.workers.tasks import utils as task_utils
 
 
@@ -49,7 +50,7 @@ def parse_feed(
     prev_parsed_at: Optional[datetime],
     modified_at: Optional[datetime],
     etag: Optional[str],
-) -> task_utils.FeedStub:
+) -> Optional[task_utils.FeedStub]:
     """Parse feed.
 
     Args:
@@ -70,21 +71,33 @@ def parse_feed(
     parsed_feed = feedparser.parse(url, modified=modified_at, etag=etag)
     parsed_at = datetime.utcnow().replace(microsecond=0)
 
-    posts = (_entry_2_post(feed_id, e) for e in parsed_feed["entries"])
-    posts = tuple(p for p in posts if _is_post_new(p, prev_parsed_at))
+    try:
+        new_posts = []
+        for entry in parsed_feed["entries"]:
+            post_stub = _entry_2_post(entry, feed_id)
+            if _is_post_new(post_stub, prev_parsed_at):
+                new_posts.append(post_stub)
+    except exceptions.FeedProcessError as err:
+        logger.error("Skipping feed %s due to error: %s", feed_id, err)
+        new_posts = []
+    else:
+        logger.info(
+            "Feed %d: fetched %d entries, %d new entries to be saved",
+            feed_id, len(parsed_feed["entries"]), len(new_posts)
+        )
 
-    logger.info("Feed %d: fetched %d entries, %d new entries to be saved",
-                feed_id, len(parsed_feed["entries"]), len(posts))
+    # Some feeds does not publish Last-Modified or ETag at all, which leads
+    # to missing corresponding attributes, which is why `.get()` is used.
+    modified = parsed_feed.get("modified_parsed")
+    etag = parsed_feed.get("etag")
 
     return task_utils.FeedStub(
         id=feed_id,
         url=url,
         parsed_at=parsed_at,
-        # Some feeds does not publish Last-Modified or ETag at all, which leads
-        # to missing corresponding attributes, which is why `.get()` is used.
-        modified=task_utils.time_struct_2_datetime(parsed_feed.get("modified_parsed")),
-        etag=parsed_feed.get("etag"),
-        posts=posts,
+        modified=task_utils.time_struct_2_datetime(modified),
+        etag=etag,
+        posts=tuple(new_posts),
     )
 
 
@@ -113,29 +126,35 @@ def save_feeds_updates(feeds: List[task_utils.FeedStub]) -> None:
     db.commit()
 
 
-def _entry_2_post(feed_id: int, entry: dict) -> task_utils.PostStub:
+def _entry_2_post(entry: dict, feed_id: int) -> task_utils.PostStub:
     """Convert fetched entry to PostStub.
 
     Args:
-        feed_id (int): A feed ID in DB.
         entry (dict): An entry fetched from feed.
+        feed_id (int): A feed ID in DB.
 
     Returns:
         PostStub: An object representing post from RSS feed.
+
+    Raises:
+        InvalidEntry: if fetched entry contains data in unexpected format.
     """
     try:
-        return task_utils.PostStub(
-            title=entry["title"],
-            url=entry["link"],
-            published_at=task_utils.time_struct_2_datetime(entry["published_parsed"]),
-            rss_feed_id=feed_id,
-        )
+        post_tile = entry["title"]
+        post_url = entry["link"]
+        post_published_at = entry["published_parsed"]
     except KeyError as err:
         logger.error(
-            "The %s key is not present in parsed entry for feed %s",
+            "The %s key is not present in parsed entry for feed %s. ",
             err, feed_id
         )
-        raise
+        raise exceptions.InvalidEntry from err
+    return task_utils.PostStub(
+        title=post_tile,
+        url=post_url,
+        published_at=task_utils.time_struct_2_datetime(post_published_at),
+        feed_id=feed_id,
+    )
 
 
 def _is_post_new(

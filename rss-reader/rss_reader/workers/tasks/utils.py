@@ -30,7 +30,7 @@ class PostStub(NamedTuple):
     title: str
     url: str
     published_at: datetime
-    rss_feed_id: int
+    feed_id: int
 
 
 class FeedStub(NamedTuple):
