@@ -12,7 +12,7 @@ app = celery.Celery(
     backend=settings.RSS_TASKS_RES_BACKEND_URI,
     broker=settings.RSS_TASKS_QUEUE_URI,
     include=[
-        "rss_reader.workers.feeds_parser",
+        "rss_reader.workers.tasks.process_feeds"
     ],
 )
 
@@ -24,7 +24,7 @@ app.conf.update(
     result_serializer="pickle",
     beat_schedule={
         "parse-rss-feeds": {
-            "task": "rss_reader.workers.feeds_parser.load_new_posts_from_feeds",
+            "task": "rss_reader.workers.tasks.process_feeds.load_feeds_updates",
             "schedule": settings.RSS_PARSE_FEEDS_INTERVAL,
         }
     }
