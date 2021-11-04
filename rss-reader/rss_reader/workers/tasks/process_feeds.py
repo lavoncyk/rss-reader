@@ -13,6 +13,7 @@ import sqlalchemy.orm
 
 from rss_reader import models
 from rss_reader import utils
+from rss_reader.workers.app import app
 from rss_reader.workers.tasks import base
 from rss_reader.workers.tasks import exceptions
 from rss_reader.workers.tasks import utils as task_utils
@@ -21,7 +22,7 @@ from rss_reader.workers.tasks import utils as task_utils
 logger = celery.utils.log.get_logger(__name__)
 
 
-@celery.shared_task(base=base.DatabaseTask)
+@app.task(base=base.DatabaseTask)
 def load_feeds_updates() -> None:
     """Load updates from feeds in DB."""
     db: sa.orm.Session = load_feeds_updates.db
@@ -43,7 +44,7 @@ def load_feeds_updates() -> None:
     )
 
 
-@celery.shared_task
+@app.task
 def parse_feed(
     feed_id: int,
     url: str,
@@ -101,7 +102,7 @@ def parse_feed(
     )
 
 
-@celery.shared_task(base=base.DatabaseTask)
+@app.task(base=base.DatabaseTask)
 def save_feeds_updates(feeds: List[task_utils.FeedStub]) -> None:
     """Save updates from feeds in DB.
 
@@ -194,7 +195,12 @@ def _save_posts(
         FeedStub: An object representing parsed feed.
     """
     db.bulk_save_objects([
-        models.Post(**p._asdict()) for p in feed.posts
+        models.Post(
+            title=p.title,
+            url=p.url,
+            published_at=p.published_at,
+            rss_feed_id=p.feed_id,
+        ) for p in feed.posts
     ])
     return feed
 

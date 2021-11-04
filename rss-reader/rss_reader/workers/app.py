@@ -12,7 +12,8 @@ app = celery.Celery(
     backend=settings.RSS_TASKS_RES_BACKEND_URI,
     broker=settings.RSS_TASKS_QUEUE_URI,
     include=[
-        "rss_reader.workers.tasks.process_feeds"
+        "rss_reader.workers.tasks.process_feeds",
+        "rss_reader.workers.tasks.fetch_icon",
     ],
 )
 

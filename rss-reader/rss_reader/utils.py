@@ -2,9 +2,13 @@
 Module with RSS Reader utils.
 """
 
+from typing import Any, Callable, List, Optional
 import functools
 import re
-from typing import Any, Callable, List
+import urllib.parse
+
+import bs4
+import requests
 
 
 def underscore_from_camelcase(string: str) -> str:
@@ -34,3 +38,35 @@ def pipeline_each(data: List[Any], fns: List[Callable[[Any], Any]]) -> Any:
         fns,
         data,
     )
+
+
+def extract_icon_url(page_url: str) -> Optional[str]:
+    """Extract icon URL from provided page.
+
+    Args:
+        page_url (str): A page URL from which extract an icon.
+
+    Returns:
+        Optional[str]: An icon URL or None.
+    """
+
+    def load_html(url: str) -> str:
+        """Load HTML from URL."""
+        return requests.get(url, verify=False, timeout=5).text
+
+    def is_icon_tag(tag: dict) -> bool:
+        """Check if tag contains icon."""
+        return (
+            "icon" in tag.get("rel", "") and
+            tag.get("href", "")
+        )
+
+    html = load_html(page_url)
+    soup = bs4.BeautifulSoup(html, features="lxml")
+    link_tags = soup.findAll("link")
+    icon_tags = [t for t in link_tags if is_icon_tag(t)]
+    if not icon_tags:
+        return None
+
+    icon_tag, *_ = icon_tags
+    return urllib.parse.urljoin(page_url, icon_tag["href"])

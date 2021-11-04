@@ -12,6 +12,7 @@ from fastapi import params
 from rss_reader.api import crud
 from rss_reader.api import deps
 from rss_reader.api import schemas
+from rss_reader.workers import tasks
 
 
 router = fastapi.APIRouter(
@@ -44,7 +45,9 @@ async def create_feed(
     """
     Create new RSS feed.
     """
-    return crud.rss_feed.create(db, create_src=src)
+    feed_obj = crud.rss_feed.create(db, create_src=src)
+    tasks.fetch_feed_icon.delay(feed_obj.id)
+    return feed_obj
 
 
 @router.put("/{id}", response_model=schemas.RssFeed)
@@ -57,10 +60,12 @@ async def update_feed(
     """
     Update RSS feed.
     """
-    obj = crud.rss_feed.get(db, id=id)
-    if obj is None:
+    feed_obj = crud.rss_feed.get(db, id=id)
+    if feed_obj is None:
         raise fastapi.HTTPException(404, detail="RSS Feed not found")
-    return crud.rss_feed.update(db, obj=obj, update_src=src)
+    feed_obj = crud.rss_feed.update(db, obj=feed_obj, update_src=src)
+    tasks.fetch_feed_icon.delay(feed_obj.id)
+    return feed_obj
 
 
 @router.get("/{id}", response_model=schemas.RssFeed)

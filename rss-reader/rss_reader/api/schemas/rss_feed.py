@@ -18,7 +18,6 @@ class RssFeedCreate(pydantic.BaseModel):
     name: str
     url: HttpUrl
     rss: HttpUrl
-    icon: HttpUrl
 
 
 class RssFeedUpdate(pydantic.BaseModel):
@@ -28,7 +27,6 @@ class RssFeedUpdate(pydantic.BaseModel):
     name: Optional[str] = None
     url: Optional[HttpUrl] = None
     rss: Optional[HttpUrl] = None
-    icon: Optional[HttpUrl] = None
 
 
 class RssFeed(pydantic.BaseModel):
