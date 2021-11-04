@@ -40,8 +40,8 @@ class RssFeed(pydantic.BaseModel):
     name: str
     url: HttpUrl
     rss: HttpUrl
-    icon: HttpUrl
-    category: Optional[category_schemas.Category] = None
+    icon: Optional[HttpUrl]
+    category: Optional[category_schemas.Category]
 
     parsed_at: Optional[datetime]
     modified_at: Optional[datetime]
