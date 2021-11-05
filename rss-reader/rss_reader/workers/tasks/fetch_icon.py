@@ -23,7 +23,7 @@ def fetch_feed_icon(feed_id: int) -> None:
         feed_id (int): A feed ID in DB.
     """
     db: sa.orm.Session = fetch_feed_icon.db
-    feed_obj = db.query(models.RssFeed).with_for_update().get(feed_id)
+    feed_obj = db.query(models.RssFeed).get(feed_id)
     if feed_obj is None:
         logger.info("Feed %s has been deleted, cancel icon fetching.", feed_id)
         return
