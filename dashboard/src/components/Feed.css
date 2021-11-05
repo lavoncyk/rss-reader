@@ -60,3 +60,8 @@
 .post a:hover {
   color: var(--hovered-link-color);
 }
+
+.new-post {
+  font-weight: 600;
+  color: var(--brighter-text-color);
+}

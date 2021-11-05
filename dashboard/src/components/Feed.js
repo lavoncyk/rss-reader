@@ -76,7 +76,7 @@ const FeedBody = (props) => {
 const FeedPost = (props) => {
   const { postData } = props;
   return (
-    <div className="post">
+    <div className={`post ${postData.is_new ? "new-post" : ""}`}>
       <a href={postData.url} target="_blank" rel="noopener noreferrer nofollow">
         {postData.title}
       </a>
