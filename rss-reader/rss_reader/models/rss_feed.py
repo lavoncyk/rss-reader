@@ -19,6 +19,7 @@ class RssFeed(mixins.WithCreatedAt, base.Base):
     rss = sa.Column(sa.Text, nullable=False)
     icon = sa.Column(sa.Text, nullable=True)
     parsed_at = sa.Column(sa.DateTime, nullable=True)
+    posts_last_week = sa.Column(sa.Integer, nullable=False)
 
     # The modified_at and etag columns are provided by the RSS feed publisher
     # so they can have NULL values. The modified_at here is not related to the

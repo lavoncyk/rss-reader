@@ -40,6 +40,7 @@ class RssFeed(pydantic.BaseModel):
     rss: HttpUrl
     icon: Optional[HttpUrl]
     category: Optional[category_schemas.Category]
+    posts_last_week: int
 
     parsed_at: Optional[datetime]
     modified_at: Optional[datetime]

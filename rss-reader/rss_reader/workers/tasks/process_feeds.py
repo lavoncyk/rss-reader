@@ -4,6 +4,7 @@ Module with the task for loading feeds updates.
 
 from typing import List, Optional
 from datetime import datetime
+from datetime import timedelta
 import functools
 
 import celery.utils
@@ -225,6 +226,14 @@ def _update_feed(
     feed_obj.modified_at = feed.modified
     feed_obj.etag = feed.etag
     feed_obj.parsed_at = feed.parsed_at
+    feed_obj.posts_last_week = (
+        db.query(models.Post)
+        .filter(
+            models.Post.rss_feed_id == feed.id,
+            models.Post.published_at >= datetime.utcnow() - timedelta(days=7),
+        )
+        .count()
+    )
 
     db.add(feed_obj)
     return feed
