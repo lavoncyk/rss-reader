@@ -17,6 +17,7 @@ class Post(pydantic.BaseModel):
     title: str
     url: HttpUrl
     published_at: datetime
+    is_new: bool
 
     class Config:
         orm_mode = True
