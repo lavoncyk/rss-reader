@@ -4,17 +4,23 @@ categories:
     slug: tech
     feeds:
       - name: Kod.ru
-        url: https://kod.ru/rss/
+        url: https://kod.ru
+        rss: https://kod.ru/rss
       - name: IEEE Spectrum
-        url: https://spectrum.ieee.org/feeds/feed.rss
+        url: https://spectrum.ieee.org
+        rss: https://spectrum.ieee.org/feeds/feed.rss
       - name: The Verge
-        url: https://www.theverge.com/rss/index.xml
+        url: https://www.theverge.com
+        rss: https://www.theverge.com/rss/index.xml
       - name: MIT Technology Review
-        url: https://www.technologyreview.com/feed/
+        url: https://www.technologyreview.com
+        rss: https://www.technologyreview.com/feed
   - name: Blogs
     slug: blogs
     feeds:
       - name: Vas3k
-        url: https://vas3k.ru/rss/
+        url: https://vas3k.ru
+        rss: https://vas3k.ru/rss
       - name: Wait But Why
-        url: https://waitbutwhy.com/feed
+        url: https://waitbutwhy.com
+        rss: https://waitbutwhy.com/feed

@@ -10,6 +10,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm
 
 from rss_reader import models
+from rss_reader import utils
 from rss_reader.db import session
 
 
@@ -66,6 +67,12 @@ def _get_or_create_feed(
 
     feed_obj.name = feed_data["name"]
     feed_obj.url = feed_data["url"]
+    feed_obj.rss = feed_data["rss"]
+    if not feed_obj.icon and not feed_data.get("icon", ""):
+        feed_obj.icon = utils.extract_icon_url(feed_obj.url)
+    if feed_data.get("icon", ""):
+        feed_obj.icon = feed_data["icon"]
+
     feed_obj.category = category
 
     db.add(feed_obj)
