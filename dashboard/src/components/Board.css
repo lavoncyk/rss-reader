@@ -1,0 +1,10 @@
+
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+}

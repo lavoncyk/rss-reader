@@ -12,6 +12,10 @@ code {
     monospace;
 }
 
+:root {
+    --max-content-width: 1300px;
+}
+
 html, html[theme="light"] {
 
   --bg-color: #FFF;

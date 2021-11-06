@@ -7,7 +7,7 @@
 .category-header {
   font-size: 180%;
   text-align: center;
-  border-bottom: solid 2px var(--text-color);
+  border-bottom: solid 1px var(--text-color);
   min-height: 45px;
   font-weight: bold;
 }
