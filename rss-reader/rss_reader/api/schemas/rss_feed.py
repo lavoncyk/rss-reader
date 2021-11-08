@@ -18,6 +18,7 @@ class RssFeedCreate(pydantic.BaseModel):
     name: str
     url: HttpUrl
     rss: HttpUrl
+    category: Optional[category_schemas.CategoryNested] = None
 
 
 class RssFeedUpdate(pydantic.BaseModel):
@@ -27,6 +28,7 @@ class RssFeedUpdate(pydantic.BaseModel):
     name: Optional[str] = None
     url: Optional[HttpUrl] = None
     rss: Optional[HttpUrl] = None
+    category: Optional[category_schemas.CategoryNested] = None
 
 
 class RssFeed(pydantic.BaseModel):
