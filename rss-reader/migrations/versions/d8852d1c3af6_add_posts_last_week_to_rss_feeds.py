@@ -46,11 +46,12 @@ def set_posts_last_week(connection):
 
 def upgrade():
     op.add_column(
-        t_name, sa.Column("posts_last_week", sa.Integer, nullable=True))
+        t_name, sa.Column("posts_last_week", sa.Integer, nullable=True,
+                          default=0))
 
     connection = op.get_bind()
     set_posts_last_week(connection)
-    op.alter_column(t_name, "created_at", nullable=False)
+    op.alter_column(t_name, "posts_last_week", nullable=False)
 
 
 def downgrade():
