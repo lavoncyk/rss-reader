@@ -20,7 +20,7 @@ router = fastapi.APIRouter(
 
 
 @router.get("/posts/", response_model=List[schemas.Post])
-async def read_posts(
+async def list_posts(
     db: sa.orm.Session = fastapi.Depends(deps.get_db),
     cache_control: deps.CacheControl = fastapi.Depends(),
     order_by: List[dict] = fastapi.Depends(deps.get_order_by_query_param),
@@ -52,7 +52,7 @@ async def read_post(
 
 
 @router.get("/feeds/{id}/posts", response_model=List[schemas.Post])
-async def read_feed_posts(
+async def list_feed_posts(
     *,
     db: sa.orm.Session = fastapi.Depends(deps.get_db),
     cache_control: deps.CacheControl = fastapi.Depends(),

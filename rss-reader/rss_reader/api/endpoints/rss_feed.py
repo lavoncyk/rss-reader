@@ -22,7 +22,7 @@ router = fastapi.APIRouter(
 
 
 @router.get("/", response_model=List[schemas.RssFeed])
-async def read_feeds(
+async def list_feeds(
     db: sa.orm.Session = params.Depends(deps.get_db),
     order_by: List[dict] = fastapi.Depends(deps.get_order_by_query_param),
     skip: int = 0,
