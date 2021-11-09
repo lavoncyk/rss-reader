@@ -35,7 +35,7 @@ async def list_categories(
     )
 
 
-@router.post("/", response_model=schemas.Category)
+@router.post("/", response_model=schemas.Category, status_code=201)
 async def create_category(
     *,
     db: sa.orm.Session = params.Depends(deps.get_db),

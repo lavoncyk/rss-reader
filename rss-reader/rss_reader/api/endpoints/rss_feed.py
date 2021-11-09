@@ -36,7 +36,7 @@ async def list_feeds(
     )
 
 
-@router.post("/", response_model=schemas.RssFeed)
+@router.post("/", response_model=schemas.RssFeed, status_code=201)
 async def create_feed(
     *,
     db: sa.orm.Session = params.Depends(deps.get_db),
