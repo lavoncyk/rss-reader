@@ -3,13 +3,18 @@ Module which contains base CRUD operations.
 """
 
 from typing import Any, Generic, List, Optional, Type, TypeVar
+import logging
 
 import pydantic
 import sqlalchemy as sa
 import sqlalchemy.orm
 from fastapi import encoders
 
+from rss_reader.api.crud import exceptions as crud_exceptions
 from rss_reader.models import base as base_model
+
+
+logger = logging.getLogger(__name__)
 
 
 ModelType = TypeVar("ModelType", bound=base_model.Base)
@@ -119,7 +124,9 @@ class CrudBase(
             ModelType: Created object.
         """
         create_src = encoders.jsonable_encoder(create_src)
-        new_obj = self.model(**create_src)
+        new_obj = self.model()
+        for attr in create_src:
+            self._set_attr(db, new_obj, attr, create_src[attr])
         db.add(new_obj)
         db.commit()
         db.refresh(new_obj)
@@ -145,9 +152,9 @@ class CrudBase(
         obj_data = encoders.jsonable_encoder(obj)
         update_src = update_src.dict(exclude_unset=True)
 
-        for field in obj_data:
-            if field in update_src:
-                setattr(obj, field, update_src[field])
+        for attr in obj_data:
+            if attr in update_src:
+                self._set_attr(db, obj, attr, update_src[attr])
 
         db.add(obj)
         db.commit()
@@ -169,3 +176,50 @@ class CrudBase(
             db.delete(obj)
             db.commit()
         return obj
+
+    def _set_attr(
+        self,
+        db: sa.orm.Session,
+        obj: ModelType,
+        attr: str,
+        value: Any,
+    ) -> None:
+        """Set attribute value for object.
+
+        Args:
+            db (sa.orm.Session): A DB instance.
+            obj (ModelType): An object which attribute to set.
+            attr (set): An attribute's name.
+            value (Any): A value to set.
+        """
+        attr_obj = getattr(self.model, attr)
+        if attr_obj.__class__ is sa.orm.attributes.InstrumentedAttribute:
+            # Attribute is a normal sqlalchemy descriptor.
+            value = self._get_value_for_instrumented_attr(db, attr_obj, value)
+
+        try:
+            setattr(obj, attr, value)
+        except AttributeError as err:
+            logger.error("Failed to set the '%s' attribute: %s", attr, err)
+            raise
+
+    @staticmethod
+    def _get_value_for_instrumented_attr(
+        db: sa.orm.Session,
+        attr_obj: sa.orm.attributes.InstrumentedAttribute,
+        value: Any,
+    ) -> Any:
+        """Translate value to one for an InstrumentedAttribute."""
+        attr_property_cls = attr_obj.property.__class__
+
+        if attr_property_cls is sa.orm.properties.RelationshipProperty:
+            rel_class = attr_obj.property.mapper.class_
+            rel_obj = db.query(rel_class).get(value["id"])
+            if rel_obj is None:
+                raise crud_exceptions.ObjectDoesNotExist(
+                    rel_class.__name__,
+                    value["id"],
+                )
+            return rel_obj
+
+        return value
