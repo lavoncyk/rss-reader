@@ -4,6 +4,7 @@ Module with the DB session configuration.
 
 from typing import Callable
 import sqlalchemy as sa
+import sqlalchemy.orm
 
 from rss_reader.config import settings
 
