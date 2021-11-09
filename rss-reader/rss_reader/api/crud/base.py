@@ -212,7 +212,10 @@ class CrudBase(
         """Translate value to one for an InstrumentedAttribute."""
         attr_property_cls = attr_obj.property.__class__
 
-        if attr_property_cls is sa.orm.properties.RelationshipProperty:
+        if (
+            attr_property_cls is sa.orm.properties.RelationshipProperty and
+            value is not None
+        ):
             rel_class = attr_obj.property.mapper.class_
             rel_obj = db.query(rel_class).get(value["id"])
             if rel_obj is None:
