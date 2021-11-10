@@ -1,0 +1,21 @@
+FROM python:3.9-slim
+
+# Install requirements
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+WORKDIR /app
+
+COPY ./rss_reader ./rss_reader
+COPY ./migrations ./migrations
+COPY ./alembic.ini .
+COPY ./tests ./tests
+
+# Make /app/* available to be imported by Python globally to
+# better support several use cases like Alembic migrations.
+ENV PYTHONPATH=/app
+
+COPY ./scripts/run-tests.sh /run-tests.sh
+RUN chmod +x /run-tests.sh
+
+CMD ["/run-tests.sh"]
