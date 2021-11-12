@@ -3,6 +3,7 @@ Module with the API dependencies.
 """
 
 from typing import Generator, List, Optional
+import logging
 
 import fastapi
 import sqlalchemy as sa
@@ -11,13 +12,20 @@ import sqlalchemy.orm
 from rss_reader.db import session
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_db() -> Generator[sa.orm.Session, None, None]:
     """
     Get DB session instance.
     """
+    db = session.SessionLocal()
     try:
-        db = session.SessionLocal()
         yield db
+    except Exception:
+        logger.exception("Session rollback because of exception.")
+        db.rollback()
+        raise
     finally:
         db.close()
 
