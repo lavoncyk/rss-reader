@@ -28,5 +28,5 @@ if settings.BACKEND_CORS_ORIGINS:
 async def crud_exception_handler(_, exc: crud_exceptions.CrudError):
     return fastapi.responses.JSONResponse(
         status_code=400,
-        content={"message": exc.details}
+        content={"detail": exc.details}
     )

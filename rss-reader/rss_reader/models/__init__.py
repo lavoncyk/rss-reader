@@ -7,5 +7,5 @@ from .rss_feed import RssFeed  # noqa
 all_models = [
     Category,
     Post,
-    RssFeed
+    RssFeed,
 ]

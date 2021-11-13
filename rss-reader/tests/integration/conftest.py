@@ -61,3 +61,14 @@ def db_session(
     finally:
         clear_data()
         session.close()
+
+
+@pytest.fixture(scope="function")
+def feed_payload():
+    """Get feed payload."""
+    return {
+        "name": factories.fake.pystr(),
+        "url": factories.fake.url(),
+        "rss": factories.fake.url(),
+        "category": None,
+    }

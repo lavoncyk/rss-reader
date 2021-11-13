@@ -66,6 +66,24 @@ class CategoryFactory(BaseModelFactory):
     slug = factory.LazyAttribute(lambda x: fake.pystr())
 
 
+class RssFeedFactory(BaseModelFactory):
+    """
+    RSS Feed factory.
+    """
+    class Meta:
+        model = models.RssFeed
+
+    name = factory.LazyAttribute(lambda x: fake.pystr())
+    url = factory.LazyAttribute(lambda x: fake.url())
+    rss = factory.LazyAttribute(lambda x: fake.url())
+    icon = None
+    parsed_at = None
+    posts_last_week = 0
+    modified_at = None
+    etag = None
+
+
 def register_factories(db_session: sa.orm.Session) -> None:
     """Register all factories"""
     CategoryFactory.register(db_session)
+    RssFeedFactory.register(db_session)
