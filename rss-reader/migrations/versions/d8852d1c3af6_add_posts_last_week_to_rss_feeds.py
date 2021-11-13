@@ -36,7 +36,7 @@ def set_posts_last_week(connection):
                (SELECT COUNT(*)
                   FROM posts AS p
                  WHERE p.published_at >= :last_week_start
-                   AND p.rss_feed_id = r.id); 
+                   AND p.rss_feed_id = r.id);
     """)
     connection.execute(
         sql,

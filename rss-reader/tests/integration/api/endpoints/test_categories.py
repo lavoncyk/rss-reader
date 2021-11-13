@@ -156,7 +156,7 @@ def test_list_categories(
         factories.CategoryFactory()
         factories.CategoryFactory()
 
-    response = client.get(f"/api/categories/")
+    response = client.get("/api/categories/")
 
     assert response.status_code == 200
     content = response.json()

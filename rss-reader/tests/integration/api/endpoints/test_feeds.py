@@ -245,7 +245,7 @@ def test_list_feeds(
         factories.RssFeedFactory()
         factories.RssFeedFactory()
 
-    response = client.get(f"/api/feeds/")
+    response = client.get("/api/feeds/")
 
     assert response.status_code == 200
     content = response.json()
