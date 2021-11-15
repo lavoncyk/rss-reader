@@ -8,26 +8,22 @@ import sqlalchemy.orm
 
 from rss_reader import models
 from tests.integration import factories
+from tests.integration import utils
 
 
 def test_create_category(
-    client: testclient.TestClient, db_session: sa.orm.Session
+    client: testclient.TestClient,
+    db_session: sa.orm.Session,
+    category_payload: dict,
 ):
     """
     Test create category.
     """
-    data = {
-        "name": "category 1",
-        "slug": "category-1",
-    }
-
-    response = client.post("/api/categories/", json=data)
+    response = client.post("/api/categories/", json=category_payload)
 
     assert response.status_code == 201
     content = response.json()
-    assert content["name"] == data["name"]
-    assert content["slug"] == data["slug"]
-    assert "id" in content
+    utils.assert_obj_payload(payload=content, exp_payload=category_payload)
     category = db_session.query(models.Category).get(content["id"])
     assert category is not None
 
@@ -44,9 +40,13 @@ def test_read_category(
 
     assert response.status_code == 200
     content = response.json()
-    assert content["name"] == category.name
-    assert content["slug"] == category.slug
-    assert content["id"] == category.id
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload={
+            "id": category.id,
+            "name": category.name,
+            "slug": category.slug,
+        })
 
 
 def test_read_category_not_exist(
@@ -62,29 +62,35 @@ def test_read_category_not_exist(
 
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Category not found"
+    utils.assert_err_detail(payload=content, exp_detail="Category not found")
 
 
 def test_update_category(
-    client: testclient.TestClient, db_session: sa.orm.Session
+    client: testclient.TestClient,
+    db_session: sa.orm.Session,
+    category_payload: dict,
 ):
     """
     Test update category.
     """
     category = factories.CategoryFactory()
-    data = {
-        "name": "category 1",
-        "slug": "category-1",
-    }
 
-    response = client.put(f"/api/categories/{category.id}", json=data)
+    response = client.put(
+        f"/api/categories/{category.id}",
+        json=category_payload,
+    )
 
     assert response.status_code == 200
     db_session.refresh(category)
     content = response.json()
-    assert content["name"] == data["name"] == category.name
-    assert content["slug"] == data["slug"] == category.slug
-    assert content["id"] == category.id
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload=(
+            category_payload |
+            {
+                "id": category.id,
+            }
+        ))
 
 
 def test_update_category_not_exist(
@@ -107,7 +113,7 @@ def test_update_category_not_exist(
 
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Category not found"
+    utils.assert_err_detail(payload=content, exp_detail="Category not found")
 
 
 def test_delete_category(
@@ -123,9 +129,13 @@ def test_delete_category(
     db_session.expunge_all()
     assert response.status_code == 200
     content = response.json()
-    assert content["name"] == category.name
-    assert content["slug"] == category.slug
-    assert content["id"] == category.id
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload={
+            "id": category.id,
+            "name": category.name,
+            "slug": category.slug,
+        })
     category = db_session.query(models.Category).get(category.id)
     assert category is None
 
@@ -143,7 +153,7 @@ def test_delete_category_not_exist(
 
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Category not found"
+    utils.assert_err_detail(payload=content, exp_detail="Category not found")
 
 
 def test_list_categories(

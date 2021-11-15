@@ -64,6 +64,15 @@ def db_session(
 
 
 @pytest.fixture(scope="function")
+def category_payload():
+    """Get category payload."""
+    return {
+        "name": factories.fake.pystr(),
+        "slug": factories.fake.pystr(),
+    }
+
+
+@pytest.fixture(scope="function")
 def feed_payload():
     """Get feed payload."""
     return {

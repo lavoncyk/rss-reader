@@ -10,6 +10,7 @@ import sqlalchemy.orm
 
 from rss_reader import models
 from tests.integration import factories
+from tests.integration import utils
 
 
 FETCH_ICON_TASK_MOCK = mock.patch(
@@ -32,10 +33,7 @@ def test_create_feed(
 
     assert response.status_code == 201
     content = response.json()
-    assert content["name"] == feed_payload["name"]
-    assert content["url"] == feed_payload["url"]
-    assert content["rss"] == feed_payload["rss"]
-    assert "id" in content
+    utils.assert_obj_payload(payload=content, exp_payload=feed_payload)
     feed = db_session.query(models.RssFeed).get(content["id"])
     assert feed is not None
 
@@ -57,12 +55,10 @@ def test_create_feed_with_category(
 
     assert response.status_code == 201
     content = response.json()
-    assert content["name"] == feed_payload["name"]
-    assert content["url"] == feed_payload["url"]
-    assert content["rss"] == feed_payload["rss"]
-    assert content["category"] is not None
-    assert content["category"]["id"] == category.id
-    assert "id" in content
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload=feed_payload,
+    )
     feed = db_session.query(models.RssFeed).get(content["id"])
     assert feed is not None
 
@@ -78,16 +74,18 @@ def test_create_feed_with_category_not_exist(
     Test create feed with category which does not exist returns 400.
     """
     category = factories.CategoryFactory()
-    non_existing_category_id = category.id + 1
-    feed_payload["category"] = {"id": non_existing_category_id}
+    non_existing_cat_id = category.id + 1
+    feed_payload["category"] = {"id": non_existing_cat_id}
 
     response = client.post("/api/feeds/", json=feed_payload)
 
     assert response.status_code == 400
-    content = response.json()
-    exp_message = f"Category with ID {non_existing_category_id} does not exist."
-    assert content["detail"] == exp_message
     assert db_session.query(models.RssFeed).count() == 0
+    content = response.json()
+    utils.assert_err_detail(
+        payload=content,
+        exp_detail=f"Category with ID {non_existing_cat_id} does not exist.",
+    )
 
 
 def test_read_feed(
@@ -102,9 +100,14 @@ def test_read_feed(
 
     assert response.status_code == 200
     content = response.json()
-    assert content["name"] == feed.name
-    assert content["url"] == feed.url
-    assert content["rss"] == feed.rss
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload={
+            "id": feed.id,
+            "name": feed.name,
+            "url": feed.url,
+            "rss": feed.rss,
+        })
 
 
 def test_read_feed_not_exist(
@@ -120,7 +123,7 @@ def test_read_feed_not_exist(
 
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "RSS Feed not found"
+    utils.assert_err_detail(payload=content, exp_detail="RSS Feed not found")
 
 
 @FETCH_ICON_TASK_MOCK
@@ -140,10 +143,14 @@ def test_update_feed(
     assert response.status_code == 200
     db_session.refresh(feed)
     content = response.json()
-    assert content["name"] == feed_payload["name"] == feed.name
-    assert content["url"] == feed_payload["url"] == feed.url
-    assert content["rss"] == feed_payload["rss"] == feed.rss
-    assert content["id"] == feed.id
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload=(
+            feed_payload |
+            {
+                "id": feed.id,
+            }
+        ))
 
 
 @FETCH_ICON_TASK_MOCK
@@ -167,12 +174,18 @@ def test_update_feed_change_category(
     assert response.status_code == 200
     db_session.refresh(feed)
     content = response.json()
-    assert content["name"] == feed_payload["name"] == feed.name
-    assert content["url"] == feed_payload["url"] == feed.url
-    assert content["rss"] == feed_payload["rss"] == feed.rss
-    assert content["category"] is not None
-    assert content["category"]["id"] == category_new.id
-    assert content["id"] == feed.id
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload=(
+            feed_payload |
+            {
+                "id": feed.id,
+                "category": {
+                    "id": category_new.id,
+                },
+            }
+        ),
+    )
 
 
 @FETCH_ICON_TASK_MOCK
@@ -195,7 +208,7 @@ def test_update_category_not_exist(
 
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "RSS Feed not found"
+    utils.assert_err_detail(payload=content, exp_detail="RSS Feed not found")
 
 
 def test_delete_feed(
@@ -211,10 +224,14 @@ def test_delete_feed(
     db_session.expunge_all()
     assert response.status_code == 200
     content = response.json()
-    assert content["name"] == feed.name
-    assert content["url"] == feed.url
-    assert content["rss"] == feed.rss
-    assert content["id"] == feed.id
+    utils.assert_obj_payload(
+        payload=content,
+        exp_payload={
+            "id": feed.id,
+            "name": feed.name,
+            "url": feed.url,
+            "rss": feed.rss,
+        })
     feed = db_session.query(models.RssFeed).get(feed.id)
     assert feed is None
 
@@ -232,7 +249,7 @@ def test_delete_feed_not_exist(
 
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "RSS Feed not found"
+    utils.assert_err_detail(payload=content, exp_detail="RSS Feed not found")
 
 
 def test_list_feeds(
