@@ -60,6 +60,7 @@ def test_create_feed_with_category(
         exp_payload=feed_payload,
     )
     feed = db_session.query(models.RssFeed).get(content["id"])
+    assert feed.category == category
     assert feed is not None
 
 
@@ -173,6 +174,7 @@ def test_update_feed_change_category(
 
     assert response.status_code == 200
     db_session.refresh(feed)
+    assert feed.category == category_new
     content = response.json()
     utils.assert_obj_payload(
         payload=content,
