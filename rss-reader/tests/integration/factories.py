@@ -83,7 +83,21 @@ class RssFeedFactory(BaseModelFactory):
     etag = None
 
 
+class PostFactory(BaseModelFactory):
+    """
+    Post factory.
+    """
+    class Meta:
+        model = models.Post
+
+    title = factory.LazyAttribute(lambda x: fake.pystr())
+    url = factory.LazyAttribute(lambda x: fake.url())
+    published_at = factory.LazyAttribute(lambda x: fake.date_time())
+    rss_feed = factory.SubFactory(RssFeedFactory)
+
+
 def register_factories(db_session: sa.orm.Session) -> None:
     """Register all factories"""
     CategoryFactory.register(db_session)
+    PostFactory.register(db_session)
     RssFeedFactory.register(db_session)
