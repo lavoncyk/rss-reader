@@ -5,7 +5,7 @@ services:
   rss_api:
     build:
       context: .
-      dockerfile: server.dockerfile
+      dockerfile: ./docker-images/rss-api.dockerfile
     env_file:
       - .env
     volumes:
@@ -20,7 +20,7 @@ services:
   rss_parser:
     build:
       context: .
-      dockerfile: worker.dockerfile
+      dockerfile: ./docker-images/rss-parser.dockerfile
     env_file:
       - .env
     volumes:

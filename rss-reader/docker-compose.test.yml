@@ -5,7 +5,7 @@ services:
   rss_api:
     build:
       context: .
-      dockerfile: server.dockerfile.test
+      dockerfile: ./docker-images/rss-api.dockerfile.test
     env_file:
       - .env.test
     volumes:

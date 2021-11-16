@@ -7,12 +7,18 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 WORKDIR /app
 
 COPY ./rss_reader ./rss_reader
+COPY ./migrations ./migrations
+COPY ./alembic.ini .
 
 # Make /app/* available to be imported by Python globally to
 # better support several use cases like Alembic migrations.
 ENV PYTHONPATH=/app
 
-COPY ./scripts/worker-start.sh /worker-start.sh
-RUN chmod +x /worker-start.sh
+EXPOSE 8080
 
-CMD ["/worker-start.sh"]
+COPY ./scripts/server-start.sh /server-start.sh
+RUN chmod +x /server-start.sh
+
+# Run the start script, it will run prestart.sh
+# and then will start Gunicorn with Uvicorn
+ENTRYPOINT ["/server-start.sh"]

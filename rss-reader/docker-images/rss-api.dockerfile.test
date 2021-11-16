@@ -18,4 +18,4 @@ ENV PYTHONPATH=/app
 COPY ./scripts/run-tests.sh /run-tests.sh
 RUN chmod +x /run-tests.sh
 
-CMD ["/run-tests.sh"]
+ENTRYPOINT ["/run-tests.sh"]
