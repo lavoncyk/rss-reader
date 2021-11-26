@@ -21,6 +21,12 @@ docker-compose up --build
 This will build and start RSS aggregator and related API. Visit 
 http://localhost:8080/docs for interactive API documentation.
 
+**Dashboard**
+```shell
+cd dashboard
+npm start
+```
+
 **Run tests**
 ```shell
 cd rss-reader
