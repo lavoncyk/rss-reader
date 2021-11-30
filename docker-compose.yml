@@ -4,12 +4,12 @@ services:
 
   rss_api:
     build:
-      context: .
-      dockerfile: ./docker-images/rss-api.dockerfile
+      context: ./rss-reader
+      dockerfile: docker-images/rss-api.dockerfile
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ./rss-reader:/app
     ports:
       - "8080:8080"
     depends_on:
@@ -19,16 +19,29 @@ services:
 
   rss_parser:
     build:
-      context: .
-      dockerfile: ./docker-images/rss-parser.dockerfile
+      context: ./rss-reader
+      dockerfile: docker-images/rss-parser.dockerfile
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ./rss-reader:/app
     depends_on:
       - db
       - task_queue
       - task_results_backend
+    networks:
+      - rss_network
+
+  rss_bot:
+    build:
+      context: ./tg-bot
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./tg-bot:/app
+    depends_on:
+      - rss_api
     networks:
       - rss_network
 

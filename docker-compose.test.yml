@@ -4,12 +4,12 @@ services:
 
   rss_api:
     build:
-      context: .
-      dockerfile: ./docker-images/rss-api.dockerfile.test
+      context: ./rss-reader
+      dockerfile: docker-images/rss-api.dockerfile.test
     env_file:
       - .env.test
     volumes:
-      - .:/app
+      - ./rss-reader:/app
     depends_on:
       - db
     networks:
