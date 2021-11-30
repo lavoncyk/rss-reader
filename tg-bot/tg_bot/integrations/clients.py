@@ -13,6 +13,9 @@ from tg_bot.integrations import constants
 from tg_bot.integrations import errors
 
 
+logger = logging.getLogger(__name__)
+
+
 class BaseClient:
     """Base client"""
 
@@ -50,13 +53,23 @@ class BaseClient:
                 url,
                 data=data,
                 headers=headers,
-                timeout=constants.REQUESTS_TIMEOUT
+                timeout=constants.REQUESTS_TIMEOUT,
             )
             response.raise_for_status()
         except (requests.RequestException, requests.HTTPError) as err:
-            logging.error("Unable to perform request to '%s': %s", url, err)
-            raise errors.Error("Unable to perform request")
-        return response.json
+            logger.error(
+                "Unable to perform request %s %s; headers=%s; data=%s; "
+                "timeout=%s. Cause: %s",
+                method.upper(),
+                url,
+                headers,
+                data,
+                constants.REQUESTS_TIMEOUT,
+                err,
+            )
+            raise errors.Error("Unable to perform request") from err
+
+        return response.json()
 
     def get(self, url: str, headers: dict = None) -> Any:
         """Performs GET HTTP request to given URL."""
@@ -72,7 +85,7 @@ class BaseClient:
         return self._perform_request(url, method="put", data=data,
                                      headers=headers)
 
-    def delete(self, url: str, headers: dict = None):
+    def delete(self, url: str, headers: dict = None) -> Any:
         """Performs DELETE HTTP request to given URL."""
         return self._perform_request(url, method="delete", headers=headers)
 
@@ -82,7 +95,7 @@ class PostsClient(BaseClient):
 
     def fetch_posts(self) -> list:
         """Fetch posts parsed from RSS feeds."""
-        return self.get("/posts")
+        return self.get("/api/posts")
 
 
 class FeedsClient(BaseClient):
@@ -90,8 +103,8 @@ class FeedsClient(BaseClient):
 
     def add_feed(self, name: str, url: str) -> dict:
         """Add new RSS feed."""
-        return self.post("/feeds", data={"name": name, "url": url})
+        return self.post("/api/feeds", data={"name": name, "url": url})
 
     def remove_feed(self, feed_id: int) -> dict:
         """Remove RSS feed."""
-        return self.delete(f"/feeds/{feed_id}")
+        return self.delete(f"/api/feeds/{feed_id}")
