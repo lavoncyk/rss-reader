@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "tg-bot"
+version = "0.1.0"
+description = ""
+authors = ["mrR2D2 <alaksandr.lavoncyk@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+requests = "2.26"
+python-telegram-bot = "13.7"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

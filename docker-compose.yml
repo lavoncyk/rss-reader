@@ -35,7 +35,7 @@ services:
   rss_bot:
     build:
       context: ./tg-bot
-      dockerfile: Dockerfile
+      dockerfile: tg-bot.dockerfile
     env_file:
       - .env
     volumes:
