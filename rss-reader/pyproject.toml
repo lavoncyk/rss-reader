@@ -18,6 +18,7 @@ requests = "2.26"
 redis = "3.5"
 uvicorn = "0.15"
 psycopg2-binary = "2.9"
+passlib = {version = "1.7.2", extras = ["bcrypt"]}
 
 [tool.poetry.dev-dependencies]
 pytest = "6.2.5"
