@@ -5,7 +5,7 @@ description = ""
 authors = ["mrr2d2 <alaksandr.lavoncyk@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.9"
 fastapi = "0.68"
 SQLAlchemy = "1.4"
 alembic = "1.7"
@@ -19,6 +19,7 @@ redis = "3.5"
 uvicorn = "0.15"
 psycopg2-binary = "2.9"
 passlib = {version = "1.7.2", extras = ["bcrypt"]}
+pydantic = {extras = ["email"], version = "^1.9.0"}
 
 [tool.poetry.dev-dependencies]
 pytest = "6.2.5"

@@ -5,3 +5,6 @@ from .post import Post  # noqa
 from .rss_feed import RssFeed  # noqa
 from .rss_feed import RssFeedCreate  # noqa
 from .rss_feed import RssFeedUpdate  # noqa
+from .user import User  # noqa
+from .user import UserCreate  # noqa
+from .user import UserUpdate  # noqa
