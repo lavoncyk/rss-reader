@@ -20,6 +20,7 @@ uvicorn = "0.15"
 psycopg2-binary = "2.9"
 passlib = {version = "1.7.2", extras = ["bcrypt"]}
 pydantic = {extras = ["email"], version = "^1.9.0"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 
 [tool.poetry.dev-dependencies]
 pytest = "6.2.5"
