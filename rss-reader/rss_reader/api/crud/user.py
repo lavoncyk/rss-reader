@@ -54,5 +54,26 @@ class CrudUser(
         db.refresh(user_obj)
         return user_obj
 
+    def authenticate(
+        self, db: sa.orm.Session, *, email: str, password: str
+    ) -> Optional[models.User]:
+        """Authenticate a user.
+
+        Args:
+            db (sa.orm.Session): A DB instance.
+            email (str): A email.
+            password (str): A password.
+
+        Returns:
+           Optional[models.User]: Authenticated user.
+        """
+        user_obj = self.get_by_email(db, email=email)
+        if not (
+            user_obj or
+            security.verify_password(password, user_obj.hashed_password)
+        ):
+            return None
+        return user_obj
+
 
 user = CrudUser(models.User)
