@@ -8,7 +8,14 @@ import logging
 import fastapi
 import sqlalchemy as sa
 import sqlalchemy.orm
+from fastapi import security as fastapi_security
+from fastapi import status
+from jose import jwt
 
+from rss_reader import models
+from rss_reader import security as rss_security
+from rss_reader.api import crud
+from rss_reader.config import settings
 from rss_reader.db import session
 
 
@@ -28,6 +35,34 @@ def get_db() -> Generator[sa.orm.Session, None, None]:
         raise
     finally:
         db.close()
+
+
+reusable_oauth2 = fastapi_security.OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+)
+
+
+def get_current_user(
+    db: sa.orm.Session = fastapi.Depends(get_db),
+    token: str = fastapi.Depends(reusable_oauth2),
+) -> models.User:
+    try:
+        token_payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[rss_security.ALGORITHM]
+        )
+        user_id = int(token_payload["sub"])
+    except (jwt.JWTError, KeyError, TypeError):
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Could not validate token {token}",
+        )
+    user = crud.user.get(db, id=user_id)
+    if user is None:
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    return user
 
 
 class CacheControl:
