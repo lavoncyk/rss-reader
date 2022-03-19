@@ -8,6 +8,7 @@ import fastapi
 import sqlalchemy as sa
 import sqlalchemy.orm
 
+from rss_reader import models
 from rss_reader import security as rss_security
 from rss_reader.api import crud
 from rss_reader.api import deps
@@ -20,7 +21,7 @@ router = fastapi.APIRouter(
 )
 
 
-@router.post("/login/access_token", response_model=schemas.Token)
+@router.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
     db: sa.orm.Session = params.Depends(deps.get_db),
     form_data: security.OAuth2PasswordRequestForm = params.Depends(),
@@ -51,3 +52,12 @@ def login_access_token(
         access_token=access_token,
     )
 
+
+@router.post("/login/test-access-token", response_model=schemas.User)
+def test_access_token(
+    current_user: models.User = params.Depends(deps.get_current_user),
+):
+    """
+    Test access token.
+    """
+    return current_user
